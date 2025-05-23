@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const CardLink = styled(Link)`
   display: block;
@@ -9,16 +10,16 @@ const CardLink = styled(Link)`
 `;
 
 const CardContainer = styled.div`
-  background: white;
+  background: rgb(24,24,24);
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   position: relative;
   padding-bottom: 16px;
 
   &:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 12px rgba(0, 150, 136, 0.2);
   }
 `;
 
@@ -38,9 +39,9 @@ const EducatorAvatar = styled.div`
   width: 70px;
   height: 70px;
   border-radius: 50%;
-  background-color: #eee;
-  border: 3px solid white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+  background-color: rgb(24,24,24);
+  border: 3px solid rgb(24,24,24);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   position: absolute;
   bottom: -35px;
@@ -64,16 +65,17 @@ const CardTitle = styled.h3`
   font-weight: 600;
   margin: 0 0 4px 0;
   padding-right: 40px;
+  color: rgb(255,255,255);
 `;
 
 const CardSubtitle = styled.p`
   font-size: 13px;
-  color: #666;
+  color: rgb(158,158,158);
   margin: 0 0 12px 0;
 `;
 
 const InfoContainer = styled.div`
-    margin-top: 8px;
+  margin-top: 8px;
 `;
 
 const LanguageBadge = styled.div`
@@ -84,18 +86,30 @@ const LanguageBadge = styled.div`
   border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
-  color: #555;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
+  color: rgb(255,255,255);
+  background-color: rgb(0,150,136);
   text-transform: uppercase;
 `;
 
 const EducatorCard = ({ educator }) => {
+  const { t } = useTranslation();
   const avatarImgSrc = educator.profileImageFilename 
     ? `/images/perfil/${educator.profileImageFilename}` 
     : educator.img;
 
-  const bannerImgSrc = '/images/banner.png';
+  const bannerImgSrc = '/images/Banner 2.jpg';
+
+  // Mostrar la categoría real pasada por prop
+  let category = '';
+  if (educator.category) {
+    if (educator.category === 'forex') category = t('categories.forex');
+    else if (educator.category === 'crypto') category = t('categories.crypto');
+    else if (educator.category === 'financial-literacy') category = t('categories.financial_literacy');
+    else if (educator.category === 'marketing-digital') category = t('categories.marketing_digital');
+    else category = educator.category;
+  } else {
+    category = educator.title || '';
+  }
 
   return (
     <CardLink to={`/educadores/${educator.id}`}> 
@@ -104,15 +118,15 @@ const EducatorCard = ({ educator }) => {
           <BannerImage src={bannerImgSrc} alt="NVU Banner" />
           <EducatorAvatar>
             <img 
-                src={avatarImgSrc} 
-                alt={`${educator.name} avatar`} 
-                onError={(e) => { e.target.onerror = null; e.target.src='/images/placeholder.jpg'; }}
+              src={avatarImgSrc} 
+              alt={`${educator.name} avatar`} 
+              onError={(e) => { e.target.onerror = null; e.target.src='/images/placeholder.jpg'; }}
             />
           </EducatorAvatar>
         </CardHeader>
         <CardContent>
           <CardTitle>{educator.name}</CardTitle>
-          <CardSubtitle>{educator.title}</CardSubtitle>
+          <CardSubtitle>{category}</CardSubtitle>
           <InfoContainer>
             <LanguageBadge>
               {educator.language || 'N/A'}

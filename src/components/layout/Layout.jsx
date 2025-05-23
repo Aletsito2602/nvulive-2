@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import styled from 'styled-components';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const SIDEBAR_WIDTH = 250;
 const SIDEBAR_WIDTH_COLLAPSED = 70; // Ancho cuando esté plegado
@@ -23,7 +23,7 @@ const SidebarOverlay = styled.div`
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.4);
-  z-index: 999; // Debajo del sidebar pero sobre el contenido
+  z-index: 800; // Debajo del sidebar (sidebar tiene 900)
   opacity: ${props => props.$isOpen ? 1 : 0};
   visibility: ${props => props.$isOpen ? 'visible' : 'hidden'};
   transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -39,31 +39,36 @@ const ContentWrapper = styled.div`
   display: flex;
   flex: 1;
   min-width: 0;
-  padding-top: 0; // Eliminar espacio para el Header fijo
-  // Ajuste de margen izquierdo según el estado del sidebar
-  margin-left: ${props => props.$isSidebarCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH}px;
   transition: margin-left 0.3s ease;
-
-  @media (max-width: ${MOBILE_BREAKPOINT}) {
-    margin-left: 0; // Sin margen en móvil (el sidebar es drawer)
+  position: relative;
+  margin-left: ${props => props.$isSidebarCollapsed ? '70px' : '250px'};
+  @media (max-width: 991px) {
+    margin-left: 0;
   }
 `;
 
 // MainContent ya no necesita el margen ni la transición
 const MainContent = styled.main`
   flex: 1;
-  padding: 0 24px 24px 24px; // Eliminar padding superior, mantener el resto
-  background-color: #f9f9f9;
-  overflow-y: auto; // Permitir scroll solo en el contenido principal
-  min-width: 0; // Evitar overflow en flex
-  margin-top: ${HEADER_HEIGHT}; // Agregar margen superior igual a la altura del header
-
-  @media (max-width: 768px) { // Reducir padding en pantallas más pequeñas
-    padding: 0 20px 20px 20px; // Eliminar padding superior, mantener el resto
+  padding: 0 16px 16px 0;
+  background-color: rgb(0,0,0);
+  overflow-y: auto;
+  min-width: 0;
+  margin-top: ${HEADER_HEIGHT};
+  position: relative;
+  @media (max-width: 768px) {
+    padding: 0 12px 12px 0;
   }
   @media (max-width: 480px) {
-    padding: 0 15px 15px 15px; // Eliminar padding superior, mantener el resto
+    padding: 0 8px 8px 0;
   }
+`;
+
+const ContentRow = styled.div`
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: row;
 `;
 
 const Layout = ({ children }) => {
@@ -72,6 +77,7 @@ const Layout = ({ children }) => {
   // Estado específico para colapsado en escritorio (persiste entre móvil/escritorio)
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const handleToggleSidebar = () => {
     const isMobile = window.innerWidth <= parseInt(MOBILE_BREAKPOINT);
@@ -120,24 +126,19 @@ const Layout = ({ children }) => {
 
   return (
     <LayoutContainer>
-      {/* Pasar isSidebarOpen (para icono) y handleToggleSidebar al Header */}
       <Header onToggleSidebar={handleToggleSidebar} isSidebarOpen={isSidebarOpen} />
-      
-      {/* Pasar isOpen, isCollapsed (para escritorio), onClose y onToggleCollapse al Sidebar */}
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        isCollapsed={isDesktopCollapsed}
-        onClose={handleCloseSidebar} 
-        onToggleCollapse={handleToggleSidebar}
-      />
-      
-      {/* Overlay para cerrar en móvil */}
+      <ContentRow>
+        <Sidebar 
+          isOpen={isSidebarOpen} 
+          isCollapsed={isDesktopCollapsed}
+          onClose={handleCloseSidebar} 
+          onToggleCollapse={handleToggleSidebar}
+        />
+        <ContentWrapper $isSidebarCollapsed={isDesktopCollapsed}> 
+          <MainContent>{children}</MainContent>
+        </ContentWrapper>
+      </ContentRow>
       <SidebarOverlay $isOpen={isSidebarOpen} onClick={handleCloseSidebar} />
-
-      {/* Pasar estado de colapso (solo escritorio) a ContentWrapper */}
-      <ContentWrapper $isSidebarCollapsed={isDesktopCollapsed}> 
-        <MainContent>{children}</MainContent>
-      </ContentWrapper>
     </LayoutContainer>
   );
 };

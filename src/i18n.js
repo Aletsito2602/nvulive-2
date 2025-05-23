@@ -2,39 +2,42 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-// Importar archivos de traducción (los crearemos después)
-import translationES from './locales/es/translation.json';
+// Import translation files
 import translationEN from './locales/en/translation.json';
 import translationFR from './locales/fr/translation.json';
+import translationES from './locales/es/translation.json';
 
-// Configuración de i18next
+// i18next configuration
 i18n
-  // Detecta el idioma del usuario
+  // Detect user language
   .use(LanguageDetector)
-  // Pasa la instancia de i18n a react-i18next
+  // Pass i18n instance to react-i18next
   .use(initReactI18next)
-  // Inicializa i18next
+  // Initialize i18next
   .init({
-    debug: true, // Activar logs en consola (útil para desarrollo)
-    fallbackLng: 'es', // Idioma por defecto si no se detecta o falta traducción
+    debug: true, // Enable console logs (useful for development)
+    fallbackLng: 'en', // Default language if detection fails or translation is missing
+    supportedLngs: ['en', 'es', 'fr'], // Supported languages
     interpolation: {
-      escapeValue: false, // React ya escapa los valores, no es necesario para él
+      escapeValue: false, // React already escapes values, not needed for it
     },
     resources: {
-      es: {
-        translation: translationES
-      },
       en: {
         translation: translationEN
       },
       fr: {
         translation: translationFR
+      },
+      es: {
+        translation: translationES
       }
     },
-    // Opciones para LanguageDetector (opcional)
+    // LanguageDetector options
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'], // Orden de detección
-      caches: ['localStorage'], // Dónde guardar el idioma seleccionado
+      order: ['querystring', 'localStorage', 'navigator', 'htmlTag'], // Detection order
+      lookupQuerystring: 'lng', // Query parameter to look for
+      lookupLocalStorage: 'i18nextLng', // LocalStorage key
+      caches: ['localStorage'], // Where to store the selected language
     }
   });
 

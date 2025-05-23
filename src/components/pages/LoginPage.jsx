@@ -2,50 +2,84 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
+import LoginScanlinesBackground from './LoginScanlinesBackground';
 
 // --- Styled Components ---
 
-const LoginPageContainer = styled.div`
+const LoginRow = styled.div`
   display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 100vh;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: -10px;
-    left: -10px;
-    right: -10px;
-    bottom: -10px;
-    background-image: url('/images/banner.png');
-    background-size: cover;
-    background-position: center;
-    filter: blur(8px);
-    z-index: -1;
+  @media (max-width: 900px) {
+    flex-direction: column;
   }
 `;
 
+const LeftCol = styled.div`
+  flex: 1.2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  min-width: 320px;
+  background: linear-gradient(120deg, #00fff7 0%, #00bcd4 50%, #000 100%);
+  animation: gradientMove 8s ease-in-out infinite alternate;
+
+  @keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+  }
+`;
+
+const LogoContainer = styled.div`
+  width: 320px;
+  height: 320px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+`;
+
+const Slogan = styled.h2`
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0;
+  z-index: 2;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.18);
+`;
+
+const RightCol = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0,0,0);
+  min-width: 320px;
+`;
+
 const LoginFormCard = styled.div`
-  padding: 40px;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 15px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  padding: 40px 32px 32px 32px;
+  background: rgb(18,18,18);
+  border-radius: 18px;
+  box-shadow: 0 6px 32px rgba(0,255,255,0.08);
   width: 100%;
   max-width: 400px;
   text-align: center;
   position: relative;
   z-index: 1;
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1.5px solid rgba(0,255,255,0.10);
 `;
 
 const Title = styled.h1`
   margin-bottom: 30px;
-  color: #333;
-  font-size: 28px;
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 700;
 `;
 
 const Form = styled.form`
@@ -56,57 +90,77 @@ const Form = styled.form`
 
 const Input = styled.input`
   padding: 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border: 1.5px solid rgb(40,40,40);
+  border-radius: 10px;
   font-size: 16px;
+  color: #fff;
+  background: rgb(24,24,24);
   outline: none;
   transition: border-color 0.2s;
 
   &:focus {
-    border-color: #007bff;
+    border-color: #00fff7;
   }
 `;
 
 const Button = styled.button`
   padding: 15px;
   border: none;
-  border-radius: 8px;
-  background-color: #007bff;
-  color: white;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #00fff7 0%, #00bcd4 100%);
+  color: #000;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background 0.2s;
 
   &:hover {
-    background-color: #0056b3;
+    background: linear-gradient(90deg, #00e6e0 0%, #00acc1 100%);
   }
 
   &:disabled {
-    background-color: #ccc;
+    background: rgb(40,40,40);
+    color: rgb(158,158,158);
     cursor: not-allowed;
   }
 `;
 
 const ErrorMessage = styled.p`
-  color: red;
+  color: #ff5252;
   margin-top: 15px;
   font-size: 14px;
 `;
 
 const ResetLink = styled.p`
-    margin-top: 20px;
-    font-size: 14px;
-    color: #555;
-    a {
-        color: #007bff;
-        text-decoration: none;
-        &:hover {
-            text-decoration: underline;
-        }
+  margin-top: 20px;
+  font-size: 14px;
+  color: #aaa;
+  a {
+    color: #00fff7;
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
     }
+  }
 `;
 
+const LanguageSelector = styled.select`
+  margin-top: 32px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1.5px solid rgb(40,40,40);
+  background: rgb(24,24,24);
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  max-width: 220px;
+  align-self: center;
+  &:focus {
+    border-color: #00fff7;
+  }
+`;
 
 // --- Component ---
 
@@ -137,13 +191,13 @@ const LoginPage = () => {
 
       if (response.ok && data?.nvulive?.status === 'Active') {
         console.log('Login successful:', data);
-        
         const userData = data.nvulive;
         localStorage.setItem('nvuUserData', JSON.stringify({
           name: userData.customerName,
-          id: userData.customerID
+          id: userData.customerID,
+          status: userData.status
         }));
-        
+        localStorage.setItem('userName', userData.customerName);
         navigate('/'); 
       } else {
         const apiErrorMessage = data?.message || 'Invalid credentials or inactive membership.';
@@ -164,37 +218,56 @@ const LoginPage = () => {
     }
   };
 
+  const handleLanguageChange = (e) => {
+    i18n.changeLanguage(e.target.value);
+  };
+
   return (
-    <LoginPageContainer>
-      <LoginFormCard>
-        <Title>{t('login.title')}</Title>
-        <Form onSubmit={handleSubmit}>
-          <Input
-            type="email"
-            placeholder={t('login.emailPlaceholder')}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-          />
-          <Input
-            type="password"
-            placeholder={t('login.passwordPlaceholder')}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="current-password"
-          />
-          <Button type="submit" disabled={loading}>
-            {loading ? t('login.loadingButton') : t('login.loginButton')}
-          </Button>
-          {error && <ErrorMessage>{error}</ErrorMessage>}
-        </Form>
-         <ResetLink>
-            {t('login.resetPasswordPrompt')} <a href="https://nvisionu.com/en-us/forgot-password" target="_blank" rel="noopener noreferrer">{t('login.resetPasswordLink')}</a>
-        </ResetLink>
-      </LoginFormCard>
-    </LoginPageContainer>
+    <>
+      <LoginRow>
+        <LeftCol>
+          <LoginScanlinesBackground />
+          <LogoContainer style={{zIndex: 1, position: 'relative'}}>
+            <img src="/logo%20login.png" alt="NVU Login Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          </LogoContainer>
+        </LeftCol>
+        <RightCol>
+          <LoginFormCard>
+            <Title>{t('login.title')}</Title>
+            <Form onSubmit={handleSubmit}>
+              <Input
+                type="email"
+                placeholder={t('login.emailPlaceholder')}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+              <Input
+                type="password"
+                placeholder={t('login.passwordPlaceholder')}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
+              <Button type="submit" disabled={loading}>
+                {loading ? t('login.loadingButton') : t('login.loginButton')}
+              </Button>
+              {error && <ErrorMessage>{error}</ErrorMessage>}
+            </Form>
+            <ResetLink>
+              {t('login.resetPasswordPrompt')} <a href="https://nvisionu.com/en-us/forgot-password" target="_blank" rel="noopener noreferrer">{t('login.resetPasswordLink')}</a>
+            </ResetLink>
+            <LanguageSelector value={i18n.language} onChange={handleLanguageChange}>
+              <option value="es">Español</option>
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+            </LanguageSelector>
+          </LoginFormCard>
+        </RightCol>
+      </LoginRow>
+    </>
   );
 };
 

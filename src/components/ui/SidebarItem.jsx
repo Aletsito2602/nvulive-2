@@ -6,17 +6,17 @@ const ItemLink = styled(Link)`
   display: flex;
   align-items: center;
   padding: 15px 20px;
-  color: ${(props) => (props.$isActive ? '#0088cc' : '#666')};
+  color: ${(props) => (props.$isActive ? 'rgb(0,150,136)' : 'rgb(255,255,255)')};
   text-decoration: none;
   font-weight: ${(props) => (props.$isActive ? '600' : '400')};
   transition: all 0.2s ease;
-  border-left: 3px solid ${(props) => (props.$isActive ? '#0088cc' : 'transparent')};
-  background-color: ${(props) => (props.$isActive ? '#f7f9fc' : 'transparent')};
+  border-left: 3px solid ${(props) => (props.$isActive ? 'rgb(0,150,136)' : 'transparent')};
+  background-color: ${(props) => (props.$isActive ? 'rgba(0,150,136,0.08)' : 'transparent')};
   
   &:hover {
-    background-color: #f7f9fc;
-    color: #0088cc;
-    border-left-color: #0088cc;
+    background-color: rgba(0,150,136,0.12);
+    color: rgb(0,150,136);
+    border-left-color: rgb(0,150,136);
   }
 `;
 
@@ -33,11 +33,12 @@ const ItemLabel = styled.span`
   opacity: ${props => props.$isCollapsed ? '0' : '1'};
   transition: opacity 0.2s ease 0.1s;
   white-space: nowrap;
+  color: rgb(158,158,158);
 `;
 
-const SidebarItem = ({ to, icon, label, isActive, isCollapsed }) => {
+const SidebarItem = ({ to, icon, label, isActive, isCollapsed, onClick }) => {
   return (
-    <ItemLink to={to} $isActive={isActive} title={label}>
+    <ItemLink to={to} $isActive={isActive} title={label} onClick={onClick}>
       <IconWrapper $isCollapsed={isCollapsed}>{icon}</IconWrapper>
       <ItemLabel $isCollapsed={isCollapsed}>{label}</ItemLabel>
     </ItemLink>

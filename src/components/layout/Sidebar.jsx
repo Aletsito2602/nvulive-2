@@ -6,14 +6,15 @@ import {
   MdCalendarToday, 
   MdPeople, 
   MdSchool, 
-  MdForum, 
+  MdOutlineNewspaper, 
   MdWork,
   MdArrowBack,
   MdQrCodeScanner,
   MdMenu,
-  MdChevronLeft
+  MdChevronLeft,
+  MdShowChart
 } from 'react-icons/md';
-import { FaInstagram, FaTelegram } from 'react-icons/fa';
+import { FaInstagram, FaTelegram, FaHome, FaGraduationCap, FaChalkboardTeacher, FaNewspaper, FaChartLine, FaQrcode, FaBook, FaCalendarAlt, FaVideo } from 'react-icons/fa';
 import SidebarItem from '../ui/SidebarItem';
 import { useTranslation } from 'react-i18next';
 
@@ -26,13 +27,28 @@ const SidebarContainer = styled.aside`
   left: 0;
   width: ${SIDEBAR_WIDTH}px;
   height: calc(100vh - 64px);
-  background: white;
-  box-shadow: 1px 0 3px rgba(0, 0, 0, 0.1);
+  background: rgb(0,0,0);
+  box-shadow: 1px 0 3px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   z-index: 900;
   transition: transform 0.3s ease, width 0.3s ease;
   overflow-y: auto;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, 
+      rgba(0,150,136,0.2),
+      rgba(0,150,136,0.1) 50%,
+      rgba(0,150,136,0.05) 100%
+    );
+    box-shadow: 1px 0 2px rgba(0,150,136,0.1);
+  }
 
   transform: translateX(0);
   
@@ -45,6 +61,7 @@ const SidebarContainer = styled.aside`
     transform: translateX(${props => props.$isOpen ? '0' : '-100%'});
     top: 64px;
     height: calc(100vh - 64px);
+    position: fixed;
   }
 `;
 
@@ -54,7 +71,7 @@ const CollapseButton = styled.button`
   right: 10px;
   background: none;
   border: none;
-  color: #666;
+  color: rgb(0,150,136);
   font-size: 1.5rem;
   cursor: pointer;
   display: flex;
@@ -64,7 +81,7 @@ const CollapseButton = styled.button`
   transition: all 0.3s ease;
   
   &:hover {
-    color: #0088cc;
+    color: rgb(0,200,180);
   }
   
   @media (max-width: 991px) {
@@ -83,7 +100,7 @@ const MenuSection = styled.div`
 const SocialSection = styled.div`
   margin-top: auto;
   padding: 20px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid rgb(30,30,30);
   opacity: ${props => props.$isCollapsed ? '0' : '1'};
   visibility: ${props => props.$isCollapsed ? 'hidden' : 'visible'};
   transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -108,12 +125,12 @@ const SocialLinkItem = styled.li`
     display: flex;
     align-items: center;
     gap: 12px;
-    color: #666;
+    color: rgb(158,158,158);
     text-decoration: none;
     font-size: 14px;
     
     &:hover {
-      color: #333;
+      color: rgb(0,150,136);
     }
 
     svg {
@@ -125,16 +142,18 @@ const SocialLinkItem = styled.li`
 
 const Sidebar = ({ isOpen, isCollapsed, onClose, onToggleCollapse }) => {
   const location = useLocation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   
   const menuItems = [
-    { path: '/', label: t('sidebar.home'), icon: <MdHome /> },
-    { path: '/calendario', label: t('sidebar.calendar'), icon: <MdCalendarToday /> },
-    { path: '/educadores', label: t('sidebar.educators'), icon: <MdPeople /> },
-    { path: '/academia', label: t('sidebar.academy'), icon: <MdSchool /> },
-    { path: '/foro', label: t('sidebar.forum'), icon: <MdForum /> },
-    { path: '/scanner', label: t('sidebar.scanner'), icon: <MdQrCodeScanner /> },
-    { path: '/back-office', label: t('sidebar.backoffice'), icon: <MdWork /> },
+    { path: '/', icon: <FaHome />, label: t('sidebar.home') },
+    { path: '/academia', icon: <FaGraduationCap />, label: t('sidebar.academy') },
+    { path: '/educadores', icon: <FaChalkboardTeacher />, label: t('sidebar.educators') },
+    { path: '/calendario', icon: <FaCalendarAlt />, label: t('sidebar.calendar') },
+    { path: '/beyond-charts', icon: <FaVideo />, label: t('sidebar.beyondCharts') },
+    { path: '/news', icon: <FaNewspaper />, label: t('sidebar.news') },
+    { path: '/markups', icon: <FaChartLine />, label: t('sidebar.markups') },
+    { path: '/scanner', icon: <FaQrcode />, label: t('sidebar.scanner') },
+    { path: '/trading-journal', icon: <FaBook />, label: t('sidebar.tradingJournal') },
   ];
   
   const actuallyCollapsed = isCollapsed && window.innerWidth >= 992;
@@ -167,13 +186,13 @@ const Sidebar = ({ isOpen, isCollapsed, onClose, onToggleCollapse }) => {
           <SocialLinkItem>
             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
               <FaInstagram style={{ color: '#E1306C' }} />
-              <span>{t('social.instagram')}</span>
+              <span>{t('sidebar.social.instagram')}</span>
             </a>
           </SocialLinkItem>
           <SocialLinkItem>
             <a href="https://telegram.org" target="_blank" rel="noopener noreferrer">
               <FaTelegram style={{ color: '#0088cc' }} />
-              <span>{t('social.telegram')}</span>
+              <span>{t('sidebar.social.telegram')}</span>
             </a>
           </SocialLinkItem>
         </SocialLinks>
@@ -182,4 +201,4 @@ const Sidebar = ({ isOpen, isCollapsed, onClose, onToggleCollapse }) => {
   );
 };
 
-export default Sidebar;
+export default Sidebar; 

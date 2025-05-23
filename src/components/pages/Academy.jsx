@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Link, useParams } from 'react-router-dom';
+import TabBar from '../ui/TabBar';
+import { useTranslation } from 'react-i18next';
 
 const languageConfig = {
     es: { name: 'Español', educatorId: 'abi-belilty', folderId: '23622182' },
@@ -11,40 +13,14 @@ const VIMEO_USER_ID = "221550365";
 
 const PageContainer = styled.div`
   padding: 24px;
-  background-color: #f8f9fa;
+  background-color: rgb(0,0,0);
 `;
 
 const PageTitle = styled.h1`
   font-size: 28px;
-  margin-bottom: 24px;
-  color: #333;
+  margin-bottom: 0;
+  color: rgb(255,255,255);
   font-weight: 600;
-`;
-
-const LanguageFilters = styled.div`
-  display: flex;
-  gap: 12px;
-  margin-bottom: 32px;
-`;
-
-const FilterButton = styled.button`
-  padding: 8px 20px;
-  border-radius: 20px;
-  border: 1px solid transparent;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-
-  background-color: ${props => props.active ? '#343a40' : '#e9ecef'};
-  color: ${props => props.active ? 'white' : '#6c757d'};
-  border-color: ${props => props.active ? '#343a40' : '#dee2e6'};
-
-  &:hover {
-    background-color: ${props => props.active ? '#23272b' : '#ced4da'};
-    border-color: ${props => props.active ? '#23272b' : '#adb5bd'};
-    color: ${props => props.active ? 'white' : '#495057'};
-  }
 `;
 
 const SessionsGrid = styled.div`
@@ -54,10 +30,10 @@ const SessionsGrid = styled.div`
 `;
 
 const SessionCard = styled.div`
-  background: white;
+  background: rgb(24,24,24);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
   flex-direction: column;
@@ -65,7 +41,7 @@ const SessionCard = styled.div`
   
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.09);
+    box-shadow: 0 6px 16px rgba(0, 150, 136, 0.09);
   }
 `;
 
@@ -91,7 +67,7 @@ const SessionTitle = styled.h3`
   font-size: 16px;
   font-weight: 600;
   margin: 0;
-  color: #333;
+  color: rgb(255,255,255) !important;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;  
@@ -105,6 +81,7 @@ const ErrorMessage = styled.p` color: red; text-align: center; padding: 20px; `;
 const NoDataMessage = styled.p` color: #666; text-align: center; padding: 20px; `;
 
 const Academy = () => {
+    const { t } = useTranslation();
     const [activeLanguage, setActiveLanguage] = useState('es');
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -112,6 +89,7 @@ const Academy = () => {
     const [selectedVimeoId, setSelectedVimeoId] = useState(null);
 
     const currentLanguageConfig = languageConfig[activeLanguage];
+    const tabs = Object.keys(languageConfig).map(key => ({ key, label: t(`academy.tabbar.${key}`) }));
 
     useEffect(() => {
         if (!currentLanguageConfig) return;
@@ -123,7 +101,7 @@ const Academy = () => {
             setSessions([]);
 
             const folderId = currentLanguageConfig.folderId;
-            const backendUrl = `http://localhost:4000/api/vimeo-sessions?userId=${VIMEO_USER_ID}&folderId=${folderId}`;
+            const backendUrl = `/.netlify/functions/vimeo-sessions?userId=${VIMEO_USER_ID}&folderId=${folderId}`;
 
             try {
                 console.log(`Fetching academy sessions from: ${backendUrl}`);
@@ -149,19 +127,8 @@ const Academy = () => {
 
     return (
         <PageContainer>
-            <PageTitle>Academia</PageTitle>
-
-            <LanguageFilters>
-                {Object.keys(languageConfig).map(langKey => (
-                    <FilterButton 
-                        key={langKey}
-                        active={activeLanguage === langKey}
-                        onClick={() => setActiveLanguage(langKey)}
-                    >
-                        {languageConfig[langKey].name}
-                    </FilterButton>
-                ))}
-            </LanguageFilters>
+            <PageTitle>{t('academy.pageTitle', 'Academia')}</PageTitle>
+            <TabBar tabs={tabs} activeTab={activeLanguage} onTabClick={setActiveLanguage} />
 
             {selectedVimeoId && (
                 <div style={{ marginBottom: '30px', position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', backgroundColor:'#000', borderRadius: '8px' }}>
@@ -176,8 +143,16 @@ const Academy = () => {
                 </div>
             )}
 
-            {loading && <LoadingMessage>Cargando sesiones...</LoadingMessage>}
-            {error && <ErrorMessage>{error}</ErrorMessage>}
+            {selectedVimeoId && (
+                <div style={{marginBottom: '24px', textAlign: 'center'}}>
+                  <h2 style={{color: 'white', fontSize: '22px', fontWeight: 600}}>
+                    {sessions.find(s => s.vimeoId === selectedVimeoId)?.title || t('academy.selectedClass', 'Clase seleccionada')}
+                  </h2>
+                </div>
+            )}
+
+            {loading && <LoadingMessage>{t('academy.loading', 'Cargando sesiones...')}</LoadingMessage>}
+            {error && <ErrorMessage>{t('academy.error', error || 'No se pudieron cargar las sesiones.')}</ErrorMessage>}
             
             {!loading && !error && (
                 <SessionsGrid>
@@ -188,12 +163,12 @@ const Academy = () => {
                                     <ThumbnailImage src={session.thumbnailUrl || '/images/placeholder_course.jpg'} alt={session.title} />
                                 </ThumbnailContainer>
                                 <CardBody>
-                                    <SessionTitle>{session.title || 'Video sin título'}</SessionTitle>
+                                    <SessionTitle>{session.title || t('academy.noTitle', 'Video sin título')}</SessionTitle>
                                 </CardBody>
                             </SessionCard>
                         ))
                     ) : (
-                        <NoDataMessage>No hay sesiones disponibles para este idioma.</NoDataMessage>
+                        <NoDataMessage>{t('academy.noSessions', 'No hay sesiones disponibles para este idioma.')}</NoDataMessage>
                     )}
                 </SessionsGrid>
             )}

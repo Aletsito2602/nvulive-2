@@ -8,19 +8,37 @@ import { useTranslation } from 'react-i18next';
 const HEADER_HEIGHT = '64px';
 
 const HeaderContainer = styled.header`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 1rem;
-  background: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  height: ${HEADER_HEIGHT};
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
+  height: ${HEADER_HEIGHT};
+  background-color: rgb(0,0,0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
   z-index: 1000;
-  width: 100%;
+  box-shadow: 0 1px 0 rgba(0,150,136,0.2);
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, 
+      rgba(0,150,136,0.2),
+      rgba(0,150,136,0.1) 50%,
+      rgba(0,150,136,0.05) 100%
+    );
+    box-shadow: 0 1px 2px rgba(0,150,136,0.1);
+  }
+
+  @media (max-width: 768px) {
+    padding: 0 16px;
+  }
 `;
 
 const MenuToggle = styled.button`
@@ -28,7 +46,7 @@ const MenuToggle = styled.button`
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #333;
+  color: rgb(0,150,136); /* Cian */
   cursor: pointer;
   padding: 0.5rem;
   margin-right: 0.5rem;
@@ -45,6 +63,7 @@ const Logo = styled.div`
   img {
     height: 40px;
     display: block;
+    filter: brightness(0) invert(1); /* Logo blanco si es posible */
   }
   @media (max-width: 768px) {
     img { height: 35px; }
@@ -60,12 +79,31 @@ const RightSection = styled.div`
   }
 `;
 
-const NotificationIcon = styled.div`
-  font-size: 1.1rem;
-  color: #666;
+const UserDropdownContainer = styled.div`
+  position: relative;
+`;
+
+const UserDropdownMenu = styled.div`
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: rgb(30,30,30);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  padding: 8px 0;
+  z-index: 30;
+  min-width: 150px;
+`;
+
+const UserDropdownItem = styled.div`
+  padding: 10px 20px;
+  font-size: 15px;
   cursor: pointer;
-  @media (max-width: 768px) {
-    display: none;
+  color: #fff;
+  transition: background 0.18s, color 0.18s;
+  &:hover {
+    background: rgb(0,150,136,0.18);
+    color: #00bcd4;
   }
 `;
 
@@ -75,13 +113,20 @@ const UserProfile = styled.div`
   gap: 0.5rem;
   cursor: pointer;
   position: relative;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: rgb(0,150,136,0.1); /* Sutil cian */
+  }
 `;
 
 const Avatar = styled.div`
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #eee;
+  background-color: #222; /* Fondo oscuro para avatar */
   overflow: hidden;
   img {
     width: 100%;
@@ -92,6 +137,7 @@ const Avatar = styled.div`
 
 const UserInfo = styled.div`
   font-size: 0.85rem;
+  color: rgb(255,255,255);
   @media (max-width: 992px) {
     display: none;
   }
@@ -99,10 +145,11 @@ const UserInfo = styled.div`
 
 const UserName = styled.div`
   font-weight: 500;
+  color: rgb(255,255,255);
 `;
 
 const UserEmail = styled.div`
-  color: #666;
+  color: rgb(158,158,158);
   font-size: 0.75rem;
 `;
 
@@ -116,46 +163,48 @@ const LanguageSelector = styled.div`
   font-weight: 600;
   cursor: pointer;
   user-select: none;
+  color: rgb(255,255,255);
+  border: 1px solid rgb(0,255,247);
+  border-radius: 8px;
+  padding: 8px 18px;
+  background: rgb(18,18,18);
+  transition: border-color 0.2s;
+  font-size: 1rem;
+  &:hover {
+    border-color: rgb(0,150,136);
+  }
 `;
 
 const LanguageDropdown = styled.div`
   position: absolute;
   top: 100%;
   right: 0;
-  background: white;
+  background: rgb(30,30,30); /* Fondo oscuro */
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
   padding: 8px 0;
   margin-top: 4px;
   z-index: 20;
   min-width: 100px;
 `;
 
-const ProfileDropdown = styled(LanguageDropdown)`
-  /* Estilos adicionales o modificaciones si son necesarias */
-`;
-
 const DropdownItem = styled.div`
   padding: 8px 16px;
   font-size: 14px;
   cursor: pointer;
+  color: rgb(255,255,255);
   &:hover {
-    background-color: #f0f0f0;
+    background-color: rgb(0,150,136,0.2);
+    color: rgb(0,150,136);
   }
-`;
-
-const DropdownItemWithIcon = styled(DropdownItem)`
-  display: flex;
-  align-items: center;
-  gap: 8px;
 `;
 
 const Header = ({ onToggleSidebar, isSidebarOpen }) => {
   const { i18n } = useTranslation();
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const langDropdownRef = useRef(null);
-  const profileDropdownRef = useRef(null);
+  const userDropdownRef = useRef(null);
   const navigate = useNavigate();
   
   const [userData, setUserData] = useState({ name: 'Usuario', id: '' });
@@ -177,10 +226,13 @@ const Header = ({ onToggleSidebar, isSidebarOpen }) => {
     setIsLangDropdownOpen(false);
   };
 
+  const handleProfileClick = () => {
+    navigate('/perfil');
+    setIsUserDropdownOpen(false);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('nvuUserData');
-    setIsProfileDropdownOpen(false);
-    setUserData({ name: 'Usuario', id: '' });
     navigate('/login');
   };
 
@@ -189,22 +241,22 @@ const Header = ({ onToggleSidebar, isSidebarOpen }) => {
       if (langDropdownRef.current && !langDropdownRef.current.contains(event.target)) {
         setIsLangDropdownOpen(false);
       }
-      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
-        setIsProfileDropdownOpen(false);
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+        setIsUserDropdownOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [langDropdownRef, profileDropdownRef]);
+  }, [langDropdownRef, userDropdownRef]);
 
   const languageLabels = {
-    es: 'Esp',
-    en: 'Eng',
-    fr: 'Fra'
+    es: 'Español',
+    en: 'English',
+    fr: 'Français'
   };
-  const currentLanguageLabel = languageLabels[i18n.language.split('-')[0]] || 'Lang';
+  const currentLanguageLabel = languageLabels[i18n.language.split('-')[0]] || 'Idioma';
 
   return (
     <HeaderContainer>
@@ -214,38 +266,33 @@ const Header = ({ onToggleSidebar, isSidebarOpen }) => {
       
       <Logo>
         <Link to="/">
-          <img src="/images/nvu-logo.png" alt="NVU Logo" />
+          <img src="/logo%20login.png" alt="NVU Logo" />
         </Link>
       </Logo>
       
       <RightSection>
-        <NotificationIcon>
-          <FaBell />
-        </NotificationIcon>
-        
-        <UserProfile ref={profileDropdownRef} onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}>
-          <Avatar>
-            <img src="/images/81.png" alt="User Avatar" />
-          </Avatar>
-          <UserInfo>
-            <UserName>{userData.name}</UserName>
-            <UserEmail>ID: {userData.id}</UserEmail>
-          </UserInfo>
-          {isProfileDropdownOpen && (
-            <ProfileDropdown>
-              <DropdownItemWithIcon onClick={handleLogout}>
-                <span>🚪</span>
-                Logout
-              </DropdownItemWithIcon>
-            </ProfileDropdown>
+        <UserDropdownContainer ref={userDropdownRef}>
+          <UserProfile onClick={() => setIsUserDropdownOpen(v => !v)}>
+            <Avatar>
+              <img src={userData.avatar || "/images/stock-user.png"} alt="User Avatar" />
+            </Avatar>
+            <UserInfo>
+              <UserName>{userData.name}</UserName>
+              {userData.email && <UserEmail>{userData.email}</UserEmail>}
+            </UserInfo>
+          </UserProfile>
+          {isUserDropdownOpen && (
+            <UserDropdownMenu>
+              <UserDropdownItem onClick={handleProfileClick}>Perfil</UserDropdownItem>
+              <UserDropdownItem onClick={handleLogout}>Cerrar sesión</UserDropdownItem>
+            </UserDropdownMenu>
           )}
-        </UserProfile>
+        </UserDropdownContainer>
         
         <LanguageSelectorContainer ref={langDropdownRef}>
           <LanguageSelector onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}>
             {currentLanguageLabel} <MdKeyboardArrowDown />
           </LanguageSelector>
-
           {isLangDropdownOpen && (
             <LanguageDropdown>
               <DropdownItem onClick={() => handleLanguageSelect('es')}>Español</DropdownItem>

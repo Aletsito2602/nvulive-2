@@ -1,0 +1,2 @@
+[build.environment]
+VITE_VIMEO_ALLOWED_DOMAINS = "*.netlify.app, nvulive.com, www.nvulive.com" 

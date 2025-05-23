@@ -13,12 +13,15 @@ const EducatorSessionsContainer = styled.div`
 
 const BannerImage = styled.img`
   width: 100%;
-  height: 380px;
+  height: 360px;
   object-fit: cover;
   display: block;
   margin-bottom: -20px;
   position: relative; 
   z-index: 0;
+  @media (max-width: 600px) {
+    height: 90px;
+  }
 `;
 
 const ContentWrapper = styled.div`
@@ -30,10 +33,10 @@ const ContentWrapper = styled.div`
 const ProfileSection = styled.div`
   display: flex;
   gap: 24px;
-  background-color: white;
-  border-radius: 10px;
+  background-color: rgb(24,24,24);
+  border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
   margin: 0 24px 32px 24px;
 `;
 
@@ -43,19 +46,16 @@ const SocialLinksColumn = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  background-color: #f8f9fa; 
+  background-color: rgb(18,18,18);
   padding: 20px 15px;
   border-radius: 8px;
 `;
 
 const SocialIconLink = styled.a`
-  color: #6c757d; 
+  color: rgb(0,150,136); 
   font-size: 20px;
   transition: color 0.2s ease;
-
-  &:hover {
-    color: #007bff; 
-  }
+  &:hover { color: rgb(0,200,180); }
 `;
 
 const BioColumn = styled.div`
@@ -73,7 +73,7 @@ const EducatorName = styled.h2`
   font-size: 22px;
   font-weight: 600;
   margin: 0;
-  color: #333;
+  color: rgb(255,255,255);
 `;
 
 const StatusBadge = styled.div`
@@ -84,13 +84,13 @@ const StatusBadge = styled.div`
   border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
-  color: ${props => props.live ? '#dc3545' : '#6c757d'};
-  background-color: ${props => props.live ? '#f8d7da' : '#e9ecef'};
+  color: rgb(255,255,255);
+  background-color: ${props => props.$isLive ? 'rgb(0,150,136)' : 'rgb(48,48,48)'};
 `;
 
 const BioText = styled.p`
   font-size: 14px;
-  color: #555;
+  color: rgb(158,158,158);
   line-height: 1.6;
   margin: 0;
 `;
@@ -102,7 +102,7 @@ const SessionsSection = styled.div`
 const SectionTitle = styled.h2`
   font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: rgb(0,150,136);
   margin-bottom: 20px;
 `;
 
@@ -113,16 +113,15 @@ const SessionsGrid = styled.div`
 `;
 
 const SessionCard = styled.div`
-  background-color: white;
-  border-radius: 8px;
+  background-color: rgb(24,24,24);
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0,150,136,0.08);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-
   &:hover {
       transform: translateY(-4px);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 4px 16px rgba(0, 150, 136, 0.18);
   }
 `;
 
@@ -144,6 +143,7 @@ const SessionTitle = styled.h3`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: rgb(255,255,255);
 `;
 
 const SessionEducator = styled.div`
@@ -151,7 +151,7 @@ const SessionEducator = styled.div`
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #666;
+  color: rgb(158,158,158);
 `;
 
 const EducatorAvatarSmall = styled.img`
@@ -160,9 +160,21 @@ const EducatorAvatarSmall = styled.img`
   border-radius: 50%;
 `;
 
-const LoadingMessage = styled.p` color: #666; text-align: center; padding: 20px; `;
-const ErrorMessage = styled.p` color: red; text-align: center; padding: 20px; `;
-const NoDataMessage = styled.p` color: #666; text-align: center; padding: 20px; `;
+const LoadingMessage = styled.p`
+  color: rgb(158,158,158);
+  text-align: center;
+  padding: 20px;
+`;
+const ErrorMessage = styled.p`
+  color: red;
+  text-align: center;
+  padding: 20px;
+`;
+const NoDataMessage = styled.p`
+  color: rgb(158,158,158);
+  text-align: center;
+  padding: 20px;
+`;
 
 // Helper para buscar educador por ID (similar al de EducatorDetail)
 const findEducatorById = (id) => {
@@ -202,7 +214,7 @@ const EducatorSessions = () => {
       // Usar IDs del educador encontrado
       const userId = educator.vimeoUserId;
       const folderId = educator.vimeoFolderId;
-      const backendUrl = `http://localhost:4000/api/vimeo-sessions?userId=${userId}&folderId=${folderId}`;
+      const backendUrl = `/.netlify/functions/vimeo-sessions?userId=${userId}&folderId=${folderId}`;
 
       try {
         console.log(`Fetching sessions from backend: ${backendUrl}`);
@@ -254,40 +266,49 @@ const EducatorSessions = () => {
   const sessionsToShow = sessions; 
 
   // --- Determinar la imagen del banner ---
-  // Usar la imagen de perfil del educador si existe, sino la imagen general
-  const bannerSrc = educator.profileImageFilename 
-                    ? `/images/p.educadores/${educator.profileImageFilename}` 
-                    : educator.img; // Fallback a la imagen genérica si no hay de perfil
+  // Usar la imagen de portada del educador si existe, sino la imagen general
+  const bannerSrc = educator.coverImageFilename 
+                    ? `/images/PORTADAS/${educator.coverImageFilename}` 
+                    : '/images/banner.png'; // Fallback a la imagen genérica si no hay de portada
+
+  // Función para manejar errores de carga de imagen
+  const handleImageError = (e) => {
+    console.error('Error loading banner image:', e);
+    console.log('Attempted to load:', bannerSrc);
+    e.target.src = '/images/banner.png'; // Fallback a la imagen genérica
+  };
+
+  // Efecto para precargar la imagen
+  useEffect(() => {
+    if (educator.coverImageFilename) {
+      const img = new Image();
+      img.src = bannerSrc;
+      img.onload = () => {
+        console.log('Banner image loaded successfully:', bannerSrc);
+      };
+      img.onerror = () => {
+        console.error('Failed to load banner image:', bannerSrc);
+      };
+    }
+  }, [educator.coverImageFilename]);
 
   return (
     <EducatorSessionsContainer>
-       {/* Usar la imagen correcta para el banner */}
-       <BannerImage src={bannerSrc} alt={`${educator.name} banner`} />
+       {/* Usar la imagen correcta para el banner con manejo de errores */}
+       <BannerImage 
+         src={bannerSrc} 
+         alt={`${educator.name} banner`} 
+         onError={handleImageError}
+         crossOrigin="anonymous"
+       />
 
        <ContentWrapper>
             {/* Sección Perfil */}
             <ProfileSection>
-                <SocialLinksColumn>
-                    {educator.socialLinks?.instagram && (
-                        <SocialIconLink href={educator.socialLinks.instagram} target="_blank" rel="noopener noreferrer">
-                            <FaInstagram />
-                        </SocialIconLink>
-                    )}
-                    {educator.socialLinks?.linkedin && (
-                        <SocialIconLink href={educator.socialLinks.linkedin} target="_blank" rel="noopener noreferrer">
-                            <FaLinkedin />
-                        </SocialIconLink>
-                    )}
-                    {educator.socialLinks?.facebook && (
-                        <SocialIconLink href={educator.socialLinks.facebook} target="_blank" rel="noopener noreferrer">
-                            <FaFacebookF />
-                        </SocialIconLink>
-                    )}
-                </SocialLinksColumn>
                 <BioColumn>
                     <BioHeader>
                         <EducatorName>{educator.name}</EducatorName>
-                        <StatusBadge live={isLive}>
+                        <StatusBadge $isLive={isLive}>
                             {isLive ? <FaWifi /> : <FaUserClock />}
                             {educator.status}
                         </StatusBadge>

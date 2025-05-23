@@ -1,461 +1,594 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React from 'react';
 import styled from 'styled-components';
-import { FaVideo } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
-import { Calendar as BigCalendar, dateFnsLocalizer } from 'react-big-calendar';
-import format from 'date-fns/format';
-import parse from 'date-fns/parse';
-import startOfWeek from 'date-fns/startOfWeek';
-import getDay from 'date-fns/getDay';
-import es from 'date-fns/locale/es';
-import enUS from 'date-fns/locale/en-US';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
-
-// Importar datos
 import educatorsData from '../../data/educatorsData';
-// Datos de ejemplo (MEJORAR CON DATOS REALES/API)
-const scheduleData = {
-  '2025-04-24': [
-    { time: '11:30', educatorId: 'abi-belity', title: 'Trading Institucional' },
-    { time: '11:35', educatorId: 'about-nikki-fx', title: 'The Gold Diggers Sessions' },
-    { time: '14:00', educatorId: 'paulina', title: 'Price Action Mastery' },
-    { time: '15:00', educatorId: 'jeff-beausoleil', title: 'Forex Session' },
-    { time: '19:00', educatorId: 'dani-curtis', title: 'Stocks 101' },
-    { time: '20:00', educatorId: 'henry-tyson', title: 'Truth yo pipe' },
-  ],
-  '2025-04-25': [
-    { time: '18:00', educatorId: 'marcelo-t-fx', title: 'Intro E-commerce' },
-    { time: '22:00', educatorId: 'abi-belity', title: 'Trading Institucional' },
-  ],
-  '2025-05-15': [ // Añadir evento en Mayo para probar vista mensual
-     { time: '10:00', educatorId: 'paulina', title: 'Monthly Review Session' }
-  ]
-};
+import { DateTime } from 'luxon';
 
-// Configurar el localizer para react-big-calendar
-const locales = {
-  'es': es,
-  'en': enUS,
-  // Añadir más locales si es necesario
-};
+const MAX_WIDTH = '1400px';
 
-const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek: (date, options) => startOfWeek(date, { ...options, weekStartsOn: 1 }), // Lunes como inicio de semana
-  getDay,
-  locales,
-});
-
-// Helper para obtener datos del educador por ID
-const findEducatorById = (id) => {
-    for (const category in educatorsData) {
-        const educator = educatorsData[category].find(edu => edu.id === id);
-        if (educator) return educator;
-    }
-    return null; // Devuelve null si no se encuentra
-};
-
-// --- Styled Components ---
-
-// Contenedores para vistas condicionales
-const DESKTOP_BREAKPOINT = '992px';
-
-const MobileViewContainer = styled.div`
+const BannerContainer = styled.div`
+  width: 100%;
+  max-width: ${MAX_WIDTH};
+  height: 180px;
+  background: url('/images/PORTADAS/Banner TNT.jpg') center/cover no-repeat;
   display: block;
-  @media (min-width: ${DESKTOP_BREAKPOINT}) {
+  margin: 0 auto 24px auto;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+`;
+
+const CalendarWrapper = styled.div`
+  background: #181a1b;
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  overflow: hidden;
+  max-width: ${MAX_WIDTH};
+  margin: 0 auto;
+  border: 1px solid rgba(0,188,212,0.18);
+  @media (max-width: 600px) { display: none; }
+`;
+
+const CalendarHeader = styled.div`
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #181a1b;
+  border-bottom: 1px solid #23272a;
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const HeaderCell = styled.div`
+  padding: 18px 0 12px 0;
+  text-align: center;
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: ${props => props.$sunday ? '#e53935' : '#f5f6fa'};
+  letter-spacing: 0.5px;
+  background: #181a1b;
+`;
+
+const CalendarGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  min-height: 500px;
+  background: #181a1b;
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const DayColumn = styled.div`
+  border-right: 1px solid #23272a;
+  min-height: 500px;
+  padding: 0 8px;
+  &:last-child {
+    border-right: none;
+  }
+  @media (max-width: 900px) {
+    min-height: 350px;
+    padding: 0 4px;
+  }
+`;
+
+const DayCellContent = styled.div`
+  padding: 18px 0 0 0;
+`;
+
+const SessionCardWrapper = styled.div`
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  @media (max-width: 600px) {
+    margin-bottom: 12px;
+  }
+`;
+
+const EducatorAvatar = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #23272a;
+  border: 2px solid #23272a;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  @media (max-width: 600px) {
+    width: 36px;
+    height: 36px;
+  }
+`;
+
+const SessionInfo = styled.div`
+  background: #23272a;
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #f5f6fa;
+  font-size: 0.97rem;
+  text-align: center;
+  width: 100%;
+`;
+const SessionTime = styled.div`
+  color: #00bcd4;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 2px;
+`;
+const SessionTitle = styled.div`
+  font-size: 14px;
+  font-weight: 600;
+  color: #f5f6fa;
+`;
+
+const ButtonRow = styled.div`
+  width: 100%;
+  max-width: ${MAX_WIDTH};
+  margin: 0 auto 12px auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+`;
+
+const ToggleViewButton = styled.button`
+  background: #181a1b;
+  color: #00bcd4;
+  border: 1px solid #23272a;
+  padding: 6px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  &:hover {
+    background: #23272a;
+    color: #fff;
+    border: 1px solid #00bcd4;
+  }
+  @media (max-width: 600px) {
     display: none;
   }
 `;
 
-const DesktopViewContainer = styled.div`
+const weekDays = [
+  'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
+];
+
+const nameToId = {
+  'Abi Belilty': 'abi-belity',
+  'Franklin Araujo': 'frank-araujo',
+  'Richard Hall Pops': 'richard-hall-pops',
+  'Nikki Sutherland': 'nikki-sutherland',
+  'Ana Paulina': 'paulina',
+  'Stephon Royal': 'stephon-royal',
+  'Raquel Curtis': 'raquel-curtis',
+  'Mauricio Gaytán': 'maur-gaytan',
+  'Angie Toney': 'angie-toney',
+  'Jorge Damelines': 'jorge-damelines',
+  'Sebastian Garcia': 'seb-garcia',
+  'Javier Perez': 'javier-perez',
+  'Raphael Msica': 'raphael-msica',
+  'Andre Tyson': 'andre-tyson',
+  'Arin Long': 'arin-long',
+  'Corey Williams': 'corey-williams'
+};
+
+const sessionsByDay = {
+  Sunday: [
+    // Inglés
+    { time: '21:00', educator: 'Andre Tyson', title: '', lang: 'English' },
+    // Español
+    { time: '20:00', educator: 'Sebastian Garcia', title: '', lang: 'Español' },
+  ],
+  Monday: [
+    // Inglés
+    { time: '14:00', educator: 'Ana Paulina', title: '', lang: 'English' },
+    { time: '11:00', educator: 'Franklin Araujo', title: '', lang: 'Español' },
+    { time: '20:00', educator: 'Mauricio Gaytán', title: '', lang: 'Español' },
+  ],
+  Tuesday: [
+    // Inglés
+    { time: '14:00', educator: 'Ana Paulina', title: '', lang: 'English' },
+    { time: '17:00', educator: 'Nikki Sutherland', title: '', lang: 'English' },
+    { time: '19:00', educator: 'Angie Toney', title: '', lang: 'English' },
+    { time: '20:00', educator: 'Arin Long', title: '', lang: 'English' },
+    { time: '23:00', educator: 'Richard Hall Pops', title: '', lang: 'English' },
+    // Español
+    { time: '09:00', educator: 'Javier Perez', title: '', lang: 'Español' },
+    { time: '10:00', educator: 'Jorge Damelines', title: '', lang: 'Español' },
+    { time: '20:00', educator: 'Sebastian Garcia', title: '', lang: 'Español' },
+  ],
+  Wednesday: [
+    // Inglés
+    { time: '10:00', educator: 'Richard Hall Pops', title: '', lang: 'English' },
+    { time: '16:00', educator: 'Raphael Msica', title: '', lang: 'Français' },
+    { time: '19:00', educator: 'Arin Long', title: '', lang: 'English' },
+    { time: '20:00', educator: 'Corey Williams', title: '', lang: 'English' },
+    { time: '21:00', educator: 'Stephon Royal', title: '', lang: 'English' },
+    // Español
+    { time: '10:00', educator: 'Abi Belilty', title: '', lang: 'Español' },
+    { time: '20:00', educator: 'Mauricio Gaytán', title: '', lang: 'Español' },
+  ],
+  Thursday: [
+    // Inglés
+    { time: '17:00', educator: 'Nikki Sutherland', title: '', lang: 'English' },
+    { time: '19:00', educator: 'Raquel Curtis', title: '', lang: 'English' },
+    { time: '20:00', educator: 'Andre Tyson', title: '', lang: 'English' },
+    { time: '23:00', educator: 'Richard Hall Pops', title: '', lang: 'English' },
+    // Español
+    { time: '09:00', educator: 'Javier Perez', title: '', lang: 'Español' },
+    { time: '11:00', educator: 'Franklin Araujo', title: '', lang: 'Español' },
+    { time: '22:00', educator: 'Abi Belilty', title: '', lang: 'Español' },
+  ],
+  Friday: [
+    // Francés
+    { time: '16:00', educator: 'Raphael Msica', title: '', lang: 'Français' },
+  ],
+  Saturday: [],
+};
+
+function findEducatorById(id) {
+  for (const category in educatorsData) {
+    const educator = educatorsData[category].find(edu => edu.id === id);
+    if (educator) return educator;
+  }
+  return null;
+}
+
+// Lista de ciudades y zonas horarias
+const timezones = [
+  { label: 'New York (EST)', value: 'America/New_York' },
+  { label: 'London', value: 'Europe/London' },
+  { label: 'Madrid', value: 'Europe/Madrid' },
+  { label: 'Buenos Aires', value: 'America/Argentina/Buenos_Aires' },
+  { label: 'Mexico City', value: 'America/Mexico_City' },
+  { label: 'Los Angeles', value: 'America/Los_Angeles' },
+  { label: 'Tokyo', value: 'Asia/Tokyo' },
+];
+
+// Lista de zonas horarias válidas
+const validTimezones = timezones.map(tz => tz.value);
+
+// --- MOBILE AGENDA STYLED COMPONENTS FUERA DEL COMPONENTE ---
+const MobileAgendaWrapper = styled.div`
   display: none;
-  @media (min-width: ${DESKTOP_BREAKPOINT}) {
+  @media (max-width: 600px) {
     display: block;
-    padding: 30px; // Aumentar padding para escritorio
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    // height: 80vh; // Quitar altura fija temporalmente
+    padding: 0 6px 24px 6px;
   }
 `;
-
-const PageContainer = styled.div`
-  padding: 0 0 24px 0; // Sin padding superior, con padding inferior
-  background-color: #f8f9fa; 
-  min-height: calc(100vh - 60px); // Ajustar según altura del Header
+const MobileDayBlock = styled.div`
+  background: #181a1b;
+  border-radius: 14px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.10);
+  padding: 10px 10px 6px 10px;
 `;
-
-// Banner superior (opcional)
-const BannerImage = styled.img`
-  width: 100%;
-  max-width: 100%; 
-  height: auto; 
-  display: block; 
-  // Sin margen inferior, el espaciado lo dará el siguiente contenedor
+const MobileDayTitle = styled.h3`
+  color: #00bcd4;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  letter-spacing: 0.5px;
 `;
-
-const ContentWrapper = styled.div`
-    padding: 24px; // Padding general para el contenido debajo del banner
+const MobileSessionCard = styled.div`
+  background: #23272a;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 `;
-
-const PageTitle = styled.h1`
-  font-size: 24px; // Ligeramente más pequeño para móvil
-  margin-bottom: 16px; 
-  color: #333;
+const MobileSessionInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 `;
-
-// --- Day Selector --- 
-const DaySelectorContainer = styled.div`
-    display: flex;
-    justify-content: space-between;
-    background-color: white;
-    border-radius: 8px;
-    padding: 10px;
-    margin-bottom: 24px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+const MobileSessionTime = styled.div`
+  color: #00bcd4;
+  font-size: 13px;
+  font-weight: 700;
 `;
-
-const DayButton = styled.button`
-    border: none;
-    background: ${props => props.active ? '#007bff' : 'transparent'};
-    color: ${props => props.active ? 'white' : '#555'};
-    padding: 8px 0;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    flex: 1; // Ocupar espacio equitativo
-    text-align: center;
-    font-size: 12px;
-    font-weight: 500;
-    transition: background-color 0.2s, color 0.2s;
-
-    &:hover {
-        background-color: ${props => props.active ? '#0056b3' : '#f0f0f0'};
-    }
+const MobileSessionTitle = styled.div`
+  font-size: 14px;
+  font-weight: 600;
+  color: #f5f6fa;
 `;
-
-const DayNumber = styled.span`
-    font-size: 16px;
-    font-weight: 600;
+const MobileSessionEducator = styled.div`
+  font-size: 13px;
+  color: #00fff7;
 `;
-
-// --- Schedule / Timeline --- 
-
-const ScheduleContainer = styled.div`
-    background: white;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+const MobileSessionLang = styled.div`
+  font-size: 12px;
+  color: #b0b0b0;
 `;
-
-const ScheduleHeader = styled.div`
-    display: flex;
-    justify-content: space-between;
-    padding: 0 10px 10px 60px; // Alinear con contenido abajo
-    border-bottom: 1px solid #e9ecef;
-    margin-bottom: 15px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #666;
-`;
-
-const TimeSlot = styled.div`
-    display: flex;
-    position: relative;
-    padding: 15px 0;
-    min-height: 60px; // Altura mínima para cada slot
-
-    &:not(:last-child)::after {
-        content: '';
-        position: absolute;
-        left: 24px; // Alineado con el centro del marcador
-        top: 40px; // Empezar después del marcador
-        bottom: -15px; // Conectar hasta el siguiente slot
-        width: 2px;
-        background-color: #e9ecef; 
-        z-index: 0;
-    }
-`;
-
-const TimeMarker = styled.div`
-    flex-shrink: 0;
-    width: 50px;
-    padding-right: 10px;
-    text-align: right;
-    font-size: 13px;
-    color: #888;
-    position: relative;
-    z-index: 1;
-    padding-top: 2px;
-
-    &::before {
-        content: '';
-        position: absolute;
-        top: 5px;
-        right: -11px; // Centrado en la línea (10px padding + 2px width / 2)
-        width: 8px;
-        height: 8px;
-        background-color: #adb5bd;
-        border-radius: 50%;
-        border: 2px solid white;
-    }
-`;
-
-const EventsList = styled.div`
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding-left: 15px; // Espacio desde la línea
-    position: relative;
-    z-index: 1;
-`;
-
-// Event Item Styling (similar a captura)
-const EventItem = styled(Link)`
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background-color: #f8f9fa;
-    padding: 12px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
-    text-decoration: none;
-    color: inherit;
-    transition: background-color 0.2s;
-
-    &:hover {
-        background-color: #e9ecef;
-    }
-`;
-
-const EventAvatar = styled.img`
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    object-fit: cover;
-`;
-
-const EventInfo = styled.div`
-    flex-grow: 1;
-    overflow: hidden;
-`;
-
-const EventEducatorName = styled.div`
-    font-size: 14px;
-    font-weight: 600;
-    color: #333;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 2px;
-`;
-
-const EventCategory = styled.div`
-    font-size: 12px;
-    color: #666;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-`;
-
-const EventVideoIcon = styled(FaVideo)`
-    font-size: 18px;
-    color: #007bff;
-    flex-shrink: 0;
-    margin-left: auto; // Empujar a la derecha
-`;
-
-// Componente personalizado para eventos en la vista mensual (COMENTADO TEMPORALMENTE)
-/*
-const MonthEvent = ({ event }) => (
-  <div style={{ fontSize: '11px', lineHeight: '1.2' }}>
-    <strong>{format(event.start, 'HH:mm')}</strong> - {event.title}
-    <br />
-    <span style={{ color: '#555' }}>{event.educatorName}</span>
-  </div>
-);
-*/
-
-// --- Component Logic ---
 
 const Calendar = () => {
-    const { t, i18n } = useTranslation();
-    // Estado común para la fecha (usado por ambas vistas para saber el mes/día inicial)
-    const [currentDate, setCurrentDate] = useState(new Date(2025, 3, 24));
-    
-    // --- Lógica para VISTA MÓVIL (Timeline Semanal) ---
-    const [selectedDateMobile, setSelectedDateMobile] = useState(currentDate);
-    const [weekDates, setWeekDates] = useState([]);
-    const [groupedEventsMobile, setGroupedEventsMobile] = useState({});
+  const { t, i18n } = useTranslation();
+  const [selectedTimezone, setSelectedTimezone] = React.useState('America/New_York');
+  const [horizontalView, setHorizontalView] = React.useState(false);
+  const [selectedLang, setSelectedLang] = React.useState('all'); // Filtro de idioma
+  const [_, setRerender] = React.useState(0); // Para forzar re-render
 
-    useEffect(() => {
-      const start = new Date(selectedDateMobile);
-      start.setDate(selectedDateMobile.getDate() - selectedDateMobile.getDay()); // Domingo
-      const dates = [];
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(start);
-        date.setDate(start.getDate() + i);
-        dates.push(date);
+  // Forzar re-render cuando cambie el idioma
+  React.useEffect(() => {
+    setRerender(r => r + 1);
+  }, [i18n.language]);
+
+  // Opciones de idioma para el filtro
+  const langOptions = [
+    { value: 'all', label: t('calendar.filterAll') },
+    { value: 'Español', label: t('calendar.filterSpanish') },
+    { value: 'English', label: t('calendar.filterEnglish') },
+    { value: 'Français', label: t('calendar.filterFrench') },
+  ];
+
+  // Función para convertir hora EST a la zona seleccionada
+  const convertTime = (estTime) => {
+    try {
+      const [hour, minute] = estTime.split(':');
+      // Crear DateTime en EST
+      const dt = DateTime.fromObject({
+        year: 2024,
+        month: 1,
+        day: 1,
+        hour: parseInt(hour, 10),
+        minute: parseInt(minute, 10)
+      }, { zone: 'America/New_York' }); // EST es America/New_York
+
+      // Convertir a la zona horaria seleccionada
+      const targetZone = validTimezones.includes(selectedTimezone) 
+        ? selectedTimezone 
+        : 'America/New_York';
+      
+      // Cambiar el formato a 12 horas con AM/PM
+      return dt.setZone(targetZone).toFormat('h:mm a');
+    } catch (error) {
+      console.error('Error converting time:', error);
+      return estTime; // Retornar la hora original si hay error
+    }
+  };
+
+  // Banner dinámico según idioma
+  const bannerImage = i18n.language.startsWith('es')
+    ? '/images/PORTADAS/Banner TNT.jpg'
+    : '/images/Download our new TNT app.jpg';
+
+  // Obtener lista única de educadores, excluyendo a Jeff
+  const allEducators = [];
+  Object.values(sessionsByDay).forEach(daySessions => {
+    daySessions.forEach(session => {
+      if (session.educator !== 'Jeff Beausoleil' && !allEducators.includes(session.educator)) {
+        allEducators.push(session.educator);
       }
-      setWeekDates(dates);
+    });
+  });
 
-      // Agrupar eventos para la fecha seleccionada en móvil
-      const key = format(selectedDateMobile, 'yyyy-MM-dd');
-      const eventsForDay = scheduleData[key] || [];
-      const grouped = eventsForDay.reduce((acc, event) => {
-        const hourKey = event.time.split(':')[0]; // Agrupar por hora
-        if (!acc[hourKey]) acc[hourKey] = [];
-        const educator = findEducatorById(event.educatorId);
-        acc[hourKey].push({
-          ...event,
-          educatorName: educator?.name || 'N/A',
-          educatorImage: educator?.profileImageFilename ? `/images/perfil/${educator.profileImageFilename}` : '/images/placeholder.jpg',
-        });
-        return acc;
-      }, {});
-      // Ordenar eventos dentro de cada hora por tiempo exacto
-      for(const hour in grouped) {
-          grouped[hour].sort((a, b) => a.time.localeCompare(b.time));
-      }
-      setGroupedEventsMobile(grouped);
+  // Filtrar sesiones por idioma
+  const filterSessions = (sessions) => {
+    if (selectedLang === 'all') return sessions;
+    return sessions.filter(session => session.lang === selectedLang);
+  };
 
-    }, [selectedDateMobile]);
-    
-    const handleDateSelectMobile = (date) => {
-      setSelectedDateMobile(date);
-    };
+  // Render horizontal view (Educador x Días)
+  const renderHorizontalView = () => (
+    <CalendarWrapper style={{overflowX:'auto'}}>
+      <div style={{width:'100%',overflowX:'auto'}}>
+        <table style={{width:'100%',borderCollapse:'collapse',minWidth:'900px',fontSize:'1rem'}}>
+          <thead>
+            <tr>
+              <th style={{background:'#181a1b',color:'#00bcd4',padding:'14px',fontWeight:700,borderBottom:'1px solid rgba(0,188,212,0.10)',fontSize:'1rem'}}>
+                Educador
+              </th>
+              {weekDays.map(day => (
+                <th key={day} style={{background:'#181a1b',color:'#f5f6fa',padding:'14px',fontWeight:600,borderBottom:'1px solid rgba(0,188,212,0.10)',fontSize:'1rem'}}>{t(`calendar.${day.toLowerCase()}`)}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {allEducators.map(educator => {
+              const educatorId = nameToId[educator];
+              const educatorObj = findEducatorById(educatorId);
+              // Filtrar por idioma: si el educador no tiene ninguna sesión en el idioma seleccionado, no mostrarlo
+              const hasSessionInLang = weekDays.some(day => filterSessions((sessionsByDay[day]||[])).some(s => s.educator === educator));
+              if (!hasSessionInLang) return null;
+              return (
+                <tr key={educator}>
+                  <td style={{background:'#23272a',color:'#fff',padding:'12px',textAlign:'center',minWidth:120,borderBottom:'1px solid rgba(0,188,212,0.10)',fontSize:'1rem'}}>
+                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',cursor:'pointer'}} onClick={() => window.location.href = `/educadores/${educatorId}`}>
+                      <EducatorAvatar>
+                        <img 
+                          src={
+                            educatorObj?.profileImageFilename
+                              ? `/images/perfil/${educatorObj.profileImageFilename}`
+                              : educatorObj?.img || '/images/placeholder.jpg'
+                          }
+                          alt={educatorObj?.name || educator}
+                          onError={e => { e.target.onerror = null; e.target.src='/images/placeholder.jpg'; }}
+                        />
+                      </EducatorAvatar>
+                      <div style={{fontWeight:600,fontSize:15,marginTop:2}}>{educator}</div>
+                    </div>
+                  </td>
+                  {weekDays.map(day => {
+                    // Filtrar sesiones por idioma
+                    const session = filterSessions((sessionsByDay[day]||[])).find(s => s.educator === educator);
+                    return (
+                      <td key={day} style={{background:'#23272a',color:'#fff',padding:'12px',minWidth:90,textAlign:'center',borderBottom:'1px solid rgba(0,188,212,0.10)',fontSize:'1rem'}}>
+                        {session ? (
+                          <div>
+                            <SessionTime>{convertTime(session.time)}</SessionTime>
+                            <SessionTitle>{session.title}</SessionTitle>
+                            <div style={{fontSize:13,color:'#00fff7',marginTop:2}}>{session.lang}</div>
+                          </div>
+                        ) : null}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <style>{`
+        @media (max-width: 900px) {
+          table { font-size: 0.92rem; }
+          th, td { padding: 8px !important; }
+        }
+        @media (max-width: 600px) {
+          table { font-size: 0.85rem; }
+          th, td { padding: 5px !important; }
+        }
+      `}</style>
+    </CalendarWrapper>
+  );
 
-    const getDayNameMobile = (date) => {
-        return date.toLocaleDateString(i18n.language, { weekday: 'short' }).toUpperCase();
-    };
-    const hoursToShowMobile = Array.from({ length: 16 }, (_, i) => 8 + i); // 8 AM a 11 PM
+  // --- Render agenda mobile ---
+  const renderMobileAgenda = () => (
+    <MobileAgendaWrapper>
+      {weekDays.map(day => (
+        <MobileDayBlock key={day}>
+          <MobileDayTitle>{t(`calendar.${day.toLowerCase()}`)}</MobileDayTitle>
+          {(filterSessions(sessionsByDay[day]) && filterSessions(sessionsByDay[day]).length > 0) ? (
+            filterSessions(sessionsByDay[day]).map((session, idx) => {
+              if (session.educator === 'Jeff Beausoleil') return null;
+              const educatorId = nameToId[session.educator];
+              const educatorObj = findEducatorById(educatorId);
+              return (
+                <MobileSessionCard key={idx} onClick={() => window.location.href = `/educadores/${educatorId}`} style={{cursor:'pointer'}}>
+                  <EducatorAvatar style={{width:32,height:32,minWidth:32}}>
+                    <img 
+                      src={educatorObj?.profileImageFilename ? `/images/perfil/${educatorObj.profileImageFilename}` : educatorObj?.img || '/images/placeholder.jpg'}
+                      alt={educatorObj?.name || session.educator}
+                      onError={e => { e.target.onerror = null; e.target.src='/images/placeholder.jpg'; }}
+                    />
+                  </EducatorAvatar>
+                  <MobileSessionInfo>
+                    <MobileSessionTime>{convertTime(session.time)}</MobileSessionTime>
+                    <MobileSessionTitle>{session.title}</MobileSessionTitle>
+                    <MobileSessionEducator>{session.educator}</MobileSessionEducator>
+                    <MobileSessionLang>{session.lang}</MobileSessionLang>
+                  </MobileSessionInfo>
+                </MobileSessionCard>
+              );
+            })
+          ) : (
+            <div style={{color:'#888',fontSize:'0.95rem',marginBottom:8}}>{t('calendar.noEvents','No hay eventos programados para este día.')}</div>
+          )}
+        </MobileDayBlock>
+      ))}
+    </MobileAgendaWrapper>
+  );
 
-    // --- Lógica para VISTA DESKTOP (Mensual con react-big-calendar) ---
-    const eventsForBigCalendar = useMemo(() => {
-      const allEvents = [];
-      Object.keys(scheduleData).forEach(dateKey => {
-        scheduleData[dateKey].forEach(event => {
-          const eventDate = parse(dateKey, 'yyyy-MM-dd', new Date());
-          const [hours, minutes] = event.time.split(':');
-          const start = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate(), parseInt(hours), parseInt(minutes));
-          // Asumimos duración de 1 hora por defecto, ajustar si es necesario
-          const end = new Date(start.getTime() + 60 * 60 * 1000);
-          const educator = findEducatorById(event.educatorId);
-
-          allEvents.push({
-            title: event.title,
-            start,
-            end,
-            allDay: false, // Indicar que no son eventos de todo el día
-            resource: event.educatorId, // Guardar ID para posible enlace/info
-            educatorName: educator?.name || 'N/A', // Añadir nombre para tooltip/vista
-          });
-        });
-      });
-      return allEvents;
-    }, []); // Depende de scheduleData, que es constante aquí
-
-    const handleNavigateDesktop = (newDate) => {
-      setCurrentDate(newDate);
-    };
-
-    const currentLocale = i18n.language.split('-')[0]; // 'es' o 'en'
-
-    return (
-        <PageContainer>
-            <BannerImage src="/images/NVU-EDU-DAY-HERO.webp" alt="NVU Education Day" />
-
-            <MobileViewContainer>
-                <ContentWrapper>
-                    <PageTitle>{t('calendar.pageTitle')}</PageTitle>
-                    <DaySelectorContainer>
-                        {weekDates.map((date, index) => (
-                            <DayButton
-                                key={index}
-                                active={format(date, 'yyyy-MM-dd') === format(selectedDateMobile, 'yyyy-MM-dd')}
-                                onClick={() => handleDateSelectMobile(date)}
-                            >
-                                {getDayNameMobile(date)}
-                                <DayNumber>{format(date, 'd')}</DayNumber>
-                            </DayButton>
-                        ))}
-                    </DaySelectorContainer>
-
-                    <ScheduleContainer>
-                      <ScheduleHeader>
-                        <span>{t('calendar.timeHeader')}</span>
-                        <span>{t('calendar.educatorHeader')}</span>
-                      </ScheduleHeader>
-                      {hoursToShowMobile.map(hour => {
-                        const hourKey = String(hour).padStart(2, '0');
-                        const eventsInHour = groupedEventsMobile[hourKey.split(':')[0]] || [];
-                        if (eventsInHour.length > 0) {
-                          return (
-                            <TimeSlot key={hour}>
-                                <TimeMarker>{`${hourKey}:00`}</TimeMarker>
-                                <EventsList>
-                                    {eventsInHour.map((event, idx) => (
-                                        <EventItem key={idx} to={`/educadores/${event.educatorId}`}>
-                                            <EventAvatar src={event.educatorImage} alt={event.educatorName} />
-                                            <EventInfo>
-                                                <EventEducatorName>{event.educatorName}</EventEducatorName>
-                                                <EventCategory>{event.title}</EventCategory>
-                                            </EventInfo>
-                                            <EventVideoIcon />
-                                        </EventItem>
-                                    ))}
-                                </EventsList>
-                            </TimeSlot>
-                          );
-                        }
-                        return null;
-                      })}
-                      {Object.keys(groupedEventsMobile).length === 0 && (
-                         <p style={{ textAlign: 'center', padding: '20px', color: '#777' }}>{t('calendar.noEvents')}</p>
-                      )}
-                    </ScheduleContainer>
-                </ContentWrapper>
-            </MobileViewContainer>
-
-            <DesktopViewContainer>
-                 <BigCalendar
-                    localizer={localizer}
-                    events={eventsForBigCalendar}
-                    startAccessor="start"
-                    endAccessor="end"
-                    style={{ height: '75vh' }} // Poner una altura aquí directamente puede funcionar mejor
-                    view="month"
-                    onView={() => {}}
-                    date={currentDate}
-                    onNavigate={handleNavigateDesktop}
-                    culture={currentLocale}
-                    messages={{
-                      month: t('calendar.month'),
-                      week: t('calendar.week'),
-                      day: t('calendar.day'),
-                      today: t('calendar.today'),
-                      previous: t('calendar.previous'),
-                      next: t('calendar.next'),
-                      noEventsInRange: t('calendar.noEvents'),
-                    }}
-                    // Quitar componente personalizado temporalmente
-                    /*
-                    components={{
-                      event: MonthEvent,
-                    }}
-                    */
-                 />
-            </DesktopViewContainer>
-
-        </PageContainer>
-    );
+  return (
+    <>
+      <div style={{
+        width: '100vw',
+        minWidth: '100%',
+        height: 240,
+        background: `url('${bannerImage}') center/cover no-repeat`,
+        display: 'block',
+        margin: '0 0 24px 0',
+        borderRadius: 0,
+        overflow: 'hidden',
+        position: 'relative',
+        left: '50%',
+        right: '50%',
+        transform: 'translateX(-50%)',
+        maxWidth: '100vw'
+      }} />
+      {/* Dropdown de zonas horarias y botón en la misma fila */}
+      <ButtonRow>
+        {/* Filtro de idioma a la izquierda */}
+        <select
+          value={selectedLang}
+          onChange={e => setSelectedLang(e.target.value)}
+          style={{padding:'6px 12px', borderRadius:8, border:'1px solid #23272a', background:'#181a1b', color:'#fff', fontWeight:500, height:38, marginRight:12}}
+        >
+          {langOptions.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+        <span style={{color:'#00bcd4', fontWeight:600, marginRight:8}}>Timezone:</span>
+        <select
+          value={selectedTimezone}
+          onChange={e => setSelectedTimezone(e.target.value)}
+          style={{padding:'6px 12px', borderRadius:8, border:'1px solid #23272a', background:'#181a1b', color:'#fff', fontWeight:500, height:38}}
+        >
+          {timezones.map(tz => (
+            <option key={tz.value} value={tz.value}>{tz.label}</option>
+          ))}
+        </select>
+        <ToggleViewButton onClick={() => setHorizontalView(v => !v)}>
+          {horizontalView ? t('calendar.traditionalView', 'Traditional view') : t('calendar.horizontalView', 'Educator x Days view')}
+        </ToggleViewButton>
+      </ButtonRow>
+      {horizontalView ? renderHorizontalView() : (
+        <>
+          <CalendarWrapper className="hide-on-mobile">
+            <CalendarHeader>
+              {weekDays.map((day, idx) => (
+                <HeaderCell key={day} $sunday={day === 'Sunday'}>{t(`calendar.${day.toLowerCase()}`)}</HeaderCell>
+              ))}
+            </CalendarHeader>
+            <CalendarGrid>
+              {weekDays.map(day => (
+                <DayColumn key={day}>
+                  <DayCellContent>
+                    {filterSessions(sessionsByDay[day]) && filterSessions(sessionsByDay[day]).length > 0 ? (
+                      filterSessions(sessionsByDay[day]).map((session, idx) => {
+                        if (session.educator === 'Jeff Beausoleil') return null;
+                        const educatorId = nameToId[session.educator];
+                        const educatorObj = findEducatorById(educatorId);
+                        return educatorObj ? (
+                          <SessionCardWrapper key={idx} onClick={() => window.location.href = `/educadores/${educatorId}`} style={{cursor:'pointer'}}>
+                            <EducatorAvatar>
+                              <img 
+                                src={educatorObj.profileImageFilename ? `/images/perfil/${educatorObj.profileImageFilename}` : educatorObj.img || '/images/placeholder.jpg'}
+                                alt={educatorObj.name}
+                                onError={e => { e.target.onerror = null; e.target.src='/images/placeholder.jpg'; }}
+                              />
+                            </EducatorAvatar>
+                            <SessionInfo>
+                              <SessionTime>{convertTime(session.time)}</SessionTime>
+                              <SessionTitle>{session.title}</SessionTitle>
+                              <div style={{ fontSize: '13px', color: '#00fff7', marginTop: 2 }}>{session.educator}</div>
+                              <div style={{ fontSize: '12px', color: '#b0b0b0', marginTop: 2 }}>{session.lang}</div>
+                            </SessionInfo>
+                          </SessionCardWrapper>
+                        ) : null;
+                      })
+                    ) : null}
+                  </DayCellContent>
+                </DayColumn>
+              ))}
+            </CalendarGrid>
+          </CalendarWrapper>
+          {renderMobileAgenda()}
+        </>
+      )}
+    </>
+  );
 };
 
 export default Calendar;

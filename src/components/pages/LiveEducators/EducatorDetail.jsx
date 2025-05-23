@@ -29,7 +29,7 @@ const BackLink = styled(Link)`
 `;
 
 const ContentWrapper = styled.div`
-    padding: 0 24px; // Padding lateral para stream, link y bio
+    padding: 20px 24px 0 24px; // 20px arriba, 24px laterales, 0 abajo
 `;
 
 const StreamArea = styled.div`
@@ -70,19 +70,23 @@ const EducatorTitle = styled.p`
 // Link/Banner para Sesiones Favoritas
 const FavoritesLink = styled(Link)`
   display: block;
-  margin-bottom: 24px; // Espacio antes de la bio
-  padding: 30px 20px;
-  background: linear-gradient(to right, #0052D4, #4364F7, #6FB1FC); // Gradiente azul
-  color: white;
-  border-radius: 10px;
+  margin-bottom: 24px;
+  padding: 24px 20px;
+  background: rgb(0,150,136); /* Cyan principal */
+  color: rgb(255,255,255);
+  border-radius: 12px;
   text-align: center;
-  box-shadow: 0 4px 10px rgba(0, 82, 212, 0.3);
+  box-shadow: 0 4px 16px rgba(0,150,136,0.15);
   text-decoration: none;
-  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: 0.5px;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
 
   &:hover {
-    opacity: 0.9;
-    box-shadow: 0 6px 15px rgba(0, 82, 212, 0.4);
+    background: rgb(0,200,180);
+    color: rgb(0,0,0);
+    box-shadow: 0 6px 20px rgba(0,200,180,0.18);
     transform: translateY(-2px);
   }
 `;
@@ -90,17 +94,18 @@ const FavoritesLink = styled(Link)`
 const FavoritesTitle = styled.h2`
   font-size: 22px;
   margin: 0;
-  font-weight: 600;
+  font-weight: 700;
+  color: inherit;
 `;
 
 // ProfileSection y sus componentes (adaptados de EducatorSessions)
 const ProfileSection = styled.div`
   display: flex;
   gap: 24px;
-  background-color: white;
-  border-radius: 10px;
+  background-color: rgb(24,24,24);
+  border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
 `;
 
 const SocialLinksColumn = styled.div`
@@ -109,18 +114,18 @@ const SocialLinksColumn = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  background-color: #f8f9fa; 
+  background-color: rgb(18,18,18);
   padding: 20px 15px;
   border-radius: 8px;
 `;
 
 const SocialIconLink = styled.a`
-  color: #6c757d; 
+  color: rgb(0,150,136); 
   font-size: 20px;
   transition: color 0.2s ease;
 
   &:hover {
-    color: #007bff; 
+    color: rgb(0,200,180); 
   }
 `;
 
@@ -140,22 +145,22 @@ const LanguageBadge = styled.div`
   display: inline-flex; 
   align-items: center;
   gap: 5px;
-  padding: 5px 10px; // Ajustado padding
+  padding: 5px 10px;
   border-radius: 6px;
   font-size: 12px;
-  font-weight: 600; // Estilo igual a EducatorCard
-  color: #555; // Estilo igual a EducatorCard
-  background-color: #f0f0f0; // Estilo igual a EducatorCard
-  border: 1px solid #ddd; // Estilo igual a EducatorCard
-  text-transform: uppercase; // Estilo igual a EducatorCard
+  font-weight: 600;
+  color: rgb(255,255,255);
+  background-color: rgb(0,150,136);
+  border: none;
+  text-transform: uppercase;
 `;
 
 const BioText = styled.p`
   font-size: 14px;
-  color: #555;
+  color: rgb(158,158,158);
   line-height: 1.6;
   margin: 0;
-  white-space: pre-wrap; // Para respetar saltos de línea de los datos
+  white-space: pre-wrap;
 `;
 
 // --- Componente --- 
@@ -176,14 +181,11 @@ const EducatorDetail = () => {
   if (!educator) {
     return (
         <div> 
-            <BackLinkContainer>
-                 {/* Texto traducido */}
-                 <BackLink to="/educadores"><FaArrowLeft /> {t('educatorDetail.back')}</BackLink>
-             </BackLinkContainer>
-             <ContentWrapper>
-                {/* Texto traducido */}
-                <p>{t('educatorDetail.notFound')}</p>
-             </ContentWrapper>
+            {/* Texto traducido */}
+            <ContentWrapper>
+               {/* Texto traducido */}
+               <p>{t('educatorDetail.notFound')}</p>
+            </ContentWrapper>
         </div>
     );
   }
@@ -193,74 +195,60 @@ const EducatorDetail = () => {
 
   return (
     <EducatorDetailContainer> 
-       <BackLinkContainer>
+      {/* Eliminar BackLinkContainer y BackLink aquí, dejar solo el embed y la info */}
+      <ContentWrapper>
+        <StreamArea>
+          <iframe
+            src={liveEmbedSrc}
+            frameBorder="0"
+            allow="autoplay; fullscreen"
+            allowFullScreen
+            title="Live Stream"
+          />
+        </StreamArea>
+        {/* Aquí sigue el resto de la info del educador, bio, etc. */}
+        {/* Enlace a Sesiones Favoritas */}
+        <FavoritesLink to={`/educadores/${educatorId}/sesiones`}>
             {/* Texto traducido */}
-            <BackLink to="/educadores">
-                <FaArrowLeft /> {t('educatorDetail.back')}
-            </BackLink>
-        </BackLinkContainer>
+            <FavoritesTitle>{t('educatorDetail.favoriteSessions')}</FavoritesTitle>
+        </FavoritesLink>
         
-        <ContentWrapper> 
-            {/* Área del Stream */}
-            <StreamArea>
-              {educator.vimeoLiveEmbed ? (
-                <iframe 
-                    src={liveEmbedSrc}
-                    frameBorder="0"
-                    allow="autoplay; fullscreen; picture-in-picture" 
-                    allowFullScreen
-                    title={`${t('educatorDetail.liveStreamTitle')} ${educator.name}`}>
-                </iframe>
-              ) : (
-                <div style={{ color: 'white', textAlign: 'center', paddingTop: '20%' }}>
-                  {/* Texto traducido */}
-                  {t('educatorDetail.streamNotAvailable')}
-                </div>
-              )}
-            </StreamArea>
-
-            {/* Enlace a Sesiones Favoritas */}
-            <FavoritesLink to={`/educadores/${educatorId}/sesiones`}>
-                {/* Texto traducido */}
-                <FavoritesTitle>{t('educatorDetail.favoriteSessions')}</FavoritesTitle>
-            </FavoritesLink>
-            
-            {/* Sección de Biografía y Redes Sociales */}
-             <ProfileSection>
-                <SocialLinksColumn>
-                    {educator.socialLinks?.instagram && educator.socialLinks.instagram !== '#' && (
-                        <SocialIconLink href={educator.socialLinks.instagram} target="_blank" rel="noopener noreferrer">
-                            <FaInstagram />
-                        </SocialIconLink>
-                    )}
-                    {educator.socialLinks?.linkedin && educator.socialLinks.linkedin !== '#' && (
-                        <SocialIconLink href={educator.socialLinks.linkedin} target="_blank" rel="noopener noreferrer">
-                            <FaLinkedin />
-                        </SocialIconLink>
-                    )}
-                    {educator.socialLinks?.facebook && educator.socialLinks.facebook !== '#' && (
-                        <SocialIconLink href={educator.socialLinks.facebook} target="_blank" rel="noopener noreferrer">
-                            <FaFacebookF />
-                        </SocialIconLink>
-                    )}
-                    {/* Añadir condicional por si no hay ningún link */}
-                    {(!educator.socialLinks || 
-                      (educator.socialLinks.instagram === '#' && educator.socialLinks.linkedin === '#' && educator.socialLinks.facebook === '#')) &&
-                       <span style={{fontSize: '12px', color: '#6c757d'}}>N/A</span> }
-                </SocialLinksColumn>
-                <BioColumn>
-                    <BioHeader>
-                        <EducatorName>{educator.name}</EducatorName>
-                        {/* Usar LanguageBadge */}
-                        <LanguageBadge>
-                            {/* Mostrar idioma */}
-                            {educator.language || 'N/A'}
-                        </LanguageBadge>
-                    </BioHeader>
-                    <BioText>{t(bioKey, educator.description || t('common.bioNotAvailable'))}</BioText>
-                </BioColumn>
-             </ProfileSection>
-        </ContentWrapper>
+        {/* Sección de Biografía y Redes Sociales */}
+         <ProfileSection>
+            <SocialLinksColumn>
+                {educator.socialLinks?.instagram && educator.socialLinks.instagram !== '#' && (
+                    <SocialIconLink href={educator.socialLinks.instagram} target="_blank" rel="noopener noreferrer">
+                        <FaInstagram />
+                    </SocialIconLink>
+                )}
+                {educator.socialLinks?.linkedin && educator.socialLinks.linkedin !== '#' && (
+                    <SocialIconLink href={educator.socialLinks.linkedin} target="_blank" rel="noopener noreferrer">
+                        <FaLinkedin />
+                    </SocialIconLink>
+                )}
+                {educator.socialLinks?.facebook && educator.socialLinks.facebook !== '#' && (
+                    <SocialIconLink href={educator.socialLinks.facebook} target="_blank" rel="noopener noreferrer">
+                        <FaFacebookF />
+                    </SocialIconLink>
+                )}
+                {/* Añadir condicional por si no hay ningún link */}
+                {(!educator.socialLinks || 
+                  (educator.socialLinks.instagram === '#' && educator.socialLinks.linkedin === '#' && educator.socialLinks.facebook === '#')) &&
+                   <span style={{fontSize: '12px', color: '#6c757d'}}>N/A</span> }
+            </SocialLinksColumn>
+            <BioColumn>
+                <BioHeader>
+                    <EducatorName>{educator.name}</EducatorName>
+                    {/* Usar LanguageBadge */}
+                    <LanguageBadge>
+                        {/* Mostrar idioma */}
+                        {educator.language || 'N/A'}
+                    </LanguageBadge>
+                </BioHeader>
+                <BioText>{t(bioKey, educator.description || t('common.bioNotAvailable'))}</BioText>
+            </BioColumn>
+         </ProfileSection>
+      </ContentWrapper>
     </EducatorDetailContainer>
   );
 };

@@ -3,9 +3,10 @@ import styled from 'styled-components';
 // import { FaBitcoin, FaEthereum } from 'react-icons/fa'; // Ya no se usan aquí
 import TradingViewWidget from '../widgets/TradingViewWidget'; // Importar el nuevo widget
 import { useTranslation } from 'react-i18next'; // Importar hook
-import { Link } from 'react-router-dom'; // Asegurar que Link esté importado
+import { Link, useNavigate } from 'react-router-dom'; // Asegurar que Link y useNavigate estén importados
 import educatorsData from '../../data/educatorsData'; // Importar datos reales
 import { FaWifi, FaUserClock } from 'react-icons/fa'; // Importar iconos de estado
+import i18n from 'i18next'; // Importar i18n para acceder al idioma actual
 
 // --- Helper para obtener los primeros N educadores (REINTRODUCIDO) ---
 const getFirstNEducators = (data, n) => {
@@ -31,15 +32,26 @@ const getFirstNEducators = (data, n) => {
   return allEducators.slice(0, n);
 };
 
+const getTopEducatorsByLanguage = (data, n, lang) => {
+  const allEducators = [];
+  for (const category in data) {
+    if (Array.isArray(data[category])) {
+      allEducators.push(...data[category].filter(edu => edu.language && edu.language.startsWith(lang)));
+    }
+  }
+  return allEducators.slice(0, n);
+};
+
 // --- Styled Components --- (Podrías moverlos a archivos separados si crecen mucho)
 
 const PageContainer = styled.div`
-  padding: 24px;
+  padding: 15px 24px 24px 24px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  background-color: rgb(0,0,0);
   @media (max-width: 768px) {
-    padding: 16px;
+    padding: 15px 16px 16px 16px;
     gap: 20px;
   }
 `;
@@ -49,52 +61,81 @@ const TopRowContainer = styled.div`
   display: flex;
   gap: 24px;
   align-items: stretch;
-  @media (max-width: 768px) { // Solo un breakpoint principal
+  width: 100%;
+  @media (max-width: 768px) {
     flex-direction: column;
     gap: 20px;
   }
 `;
 
 const Banner = styled.div`
-  background: ${props => props.bgColor || 'linear-gradient(to right, #007bff, #0056b3)'};
-  color: white;
-  padding: 30px;
-  border-radius: 10px;
+  background: ${props => props.bgColor || 'rgb(0,0,0)'};
+  color: rgb(255,255,255);
+  border-radius: 24px;
   text-align: center;
   background-size: cover;
-  background-position: center;
+  background-position: left center;
   background-image: url('${props => props.imageUrl}');
-  min-height: 450px;
+  width: 0;
+  flex: 2 1 0%;
+  max-width: 1000px;
+  aspect-ratio: 2146 / 700;
+  height: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  flex: 1;
+  margin-left: 0;
+  margin-right: 0;
   
-  @media (max-width: 768px) { // Solo un breakpoint principal
-    min-height: 250px; 
-    padding: 20px;
+  @media (max-width: 768px) {
+    border-radius: 16px;
+    aspect-ratio: 2146 / 966;
+    width: 100%;
+    flex: unset;
   }
   h1 {
     margin: 0;
     font-size: 4rem;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    color: rgb(0,150,136);
   }
 
   @media (max-width: 768px) {
     h1 {
-      font-size: 2.5rem; // Fuente más pequeña en móvil
+      font-size: 2.5rem;
     }
   }
 `;
 
+const HalfHeightBanner = styled(Banner)`
+  aspect-ratio: 2146 / 338;
+  @media (max-width: 768px) {
+    aspect-ratio: 2146 / 966;
+  }
+`;
+
+const TradingViewContainer = styled.div`
+  flex: 1 1 0%;
+  min-width: 100px;
+  max-width: 200px;
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 100%;
+    flex: unset;
+  }
+`;
+
 const Section = styled.section`
-  background: white;
+  background: rgb(24,24,24);
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
   min-width: 0;
   overflow: hidden;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
   @media (max-width: 768px) {
     padding: 16px;
   }
@@ -103,15 +144,15 @@ const Section = styled.section`
 const SectionTitle = styled.h2`
   font-size: 20px;
   margin-bottom: 16px;
-  color: #333;
+  color: rgb(255,255,255); /* Texto blanco */
   display: flex;
   justify-content: space-between;
   align-items: center;
   a {
     font-size: 14px;
-    color: #007bff;
+    color: rgb(0,150,136);
     text-decoration: none;
-    &:hover { text-decoration: underline; }
+    &:hover { text-decoration: underline; color: rgb(0,200,180); }
   }
   @media (max-width: 768px) {
     font-size: 18px;
@@ -125,6 +166,9 @@ const GridContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 20px;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
 
   @media (max-width: 768px) { // Solo un breakpoint principal
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -143,6 +187,8 @@ const TopEducatorsContainer = styled.div`
   flex-wrap: nowrap;
   padding-bottom: 15px;
   width: 100%;
+  margin-left: 0;
+  margin-right: 0;
 
   /* Estilos de scrollbar opcionales */
   &::-webkit-scrollbar {
@@ -151,6 +197,12 @@ const TopEducatorsContainer = styled.div`
   &::-webkit-scrollbar-thumb {
     background: #ccc; 
     border-radius: 4px;
+  }
+
+  @media (min-width: 992px) {
+    overflow-x: hidden;
+    justify-content: space-around;
+    /* flex-wrap: wrap; // Consider if needed if space-around isn't enough */
   }
 `;
 
@@ -173,9 +225,22 @@ const TopEducatorAvatar = styled.div`
   }
   span {
     font-size: 12px;
-    color: #333;
+    color: rgb(200,200,200);
     font-weight: 500;
     white-space: nowrap;
+  }
+
+  @media (min-width: 992px) {
+    min-width: 120px; /* Adjusted min-width for larger content */
+    img {
+      width: 90px;
+      height: 90px;
+      margin-bottom: 8px; /* Slightly more margin */
+    }
+    span {
+      font-size: 14px;
+      white-space: normal; /* Allow text to wrap if names are long */
+    }
   }
 `;
 
@@ -203,10 +268,10 @@ const CategoryButton = styled.button`
 const EducatorCard = styled(Link)` 
   text-decoration: none;
   color: inherit;
-  background-color: white;
+  background-color: rgb(24,24,24);
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
   position: relative; 
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
@@ -214,14 +279,15 @@ const EducatorCard = styled(Link)`
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 10px rgba(0, 150, 136, 0.18);
   }
 `;
 
 const EducatorImage = styled.img`
   width: 100%;
-  height: 150px;
+  height: 190px;
   object-fit: cover;
+  object-position: top center;
   display: block;
 `;
 
@@ -241,7 +307,7 @@ const EducatorCardName = styled.h3`
 
 const EducatorCardTitle = styled.p`
   font-size: 12px;
-  color: #666;
+  color: rgb(158,158,158);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -260,7 +326,7 @@ const StatusBadge = styled.div`
   font-size: 10px;
   font-weight: 500;
   color: white;
-  background-color: ${props => props.live ? '#dc3545' : '#6c757d'}; 
+  background-color: ${props => props.live ? 'rgb(0,150,136)' : 'rgb(158,158,158)'}; 
   z-index: 1;
   
   svg {
@@ -273,7 +339,7 @@ const ViewMoreButton = styled(Link)`
   width: max-content;
   margin: 0 auto; 
   padding: 10px 25px;
-  background-color: #343a40; 
+  background-color: rgb(0,150,136); 
   color: white;
   border: none;
   border-radius: 20px;
@@ -283,7 +349,7 @@ const ViewMoreButton = styled(Link)`
   transition: background-color 0.2s ease;
 
   &:hover {
-      background-color: #23272b;
+      background-color: rgb(0,180,160);
   }
 `;
 
@@ -294,6 +360,7 @@ const EducatorsPreviewGrid = styled.div`
   grid-template-columns: repeat(5, 1fr); 
   gap: 20px;
   margin-bottom: 24px; 
+  width: 100%;
 
   @media (max-width: 1200px) {
     grid-template-columns: repeat(4, 1fr);
@@ -310,28 +377,68 @@ const EducatorsPreviewGrid = styled.div`
   }
 `;
 
+const BeyondBanner = styled.div`
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto 24px auto;
+  border-radius: 24px;
+  background: url('/images/beyondnewlogo.jpg') center/cover no-repeat;
+  aspect-ratio: 4455 / 846;
+  min-height: 120px;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  @media (max-width: 768px) {
+    border-radius: 16px;
+    aspect-ratio: 4455 / 1200;
+    min-height: 30px;
+  }
+`;
+
+const TelegramBanner = styled(Banner)`
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
 // --- Componente Home --- 
 
 const Home = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language.split('-')[0];
+  const navigate = useNavigate(); // Hook para navegación
 
   // --- DATOS Y LOGS --- 
   console.log("Home Component Rendered");
   console.log("Datos Educadores Importados:", educatorsData);
   
-  const topEducators = getFirstNEducators(educatorsData, 5);
+  const topEducators = getTopEducatorsByLanguage(educatorsData, 5, currentLang);
   const previewEducators = getFirstNEducators(educatorsData, 5);
   
   console.log("Top Educators Derivados:", topEducators);
   console.log("Preview Educators Derivados:", previewEducators);
   // --- FIN DATOS Y LOGS ---
 
+  // Determinar la imagen del banner según el idioma
+  const bannerImage = currentLang === 'es' 
+    ? '/images/Bienvenido.jpg'
+    : '/images/Welcome (2).jpg';
+
+  // Determinar la imagen del banner de Telegram según el idioma
+  const telegramBanner = currentLang === 'es'
+    ? '/images/Únete a Telegram.jpg'
+    : '/images/Join Our Telegram.jpg';
+
   return (
     <PageContainer>
       {/* Fila Superior */}
       <TopRowContainer>
-        <Banner imageUrl="/images/portada.png" />
+        <Banner imageUrl={bannerImage} />
+        <TradingViewContainer>
         <TradingViewWidget />
+        </TradingViewContainer>
       </TopRowContainer>
 
       {/* Sección Educadores Top */}
@@ -343,20 +450,21 @@ const Home = () => {
         <TopEducatorsContainer>
           {Array.isArray(topEducators) && topEducators.length > 0 ? (
             topEducators.map((edu, index) => {
-              // Comprobación adicional por si acaso
               if (!edu || typeof edu !== 'object') {
                   console.warn(`Elemento inválido en topEducators en índice ${index}:`, edu);
-                  return null; // No renderizar este elemento
+                  return null;
               }
               return (
-                <TopEducatorAvatar key={edu.id || `top-edu-${index}`}> 
-                  <img 
-                    src={edu.profileImageFilename ? `/images/perfil/${edu.profileImageFilename}` : '/images/placeholder.jpg'} 
-                    alt={edu.name || t('common.nameNotAvailable')}
-                    onError={(e) => { e.target.onerror = null; e.target.src='/images/placeholder.jpg'; }}
-                  />
-                  <span>{edu.name || t('common.nameNotAvailable')}</span>
-                </TopEducatorAvatar>
+                <Link key={edu.id || `top-edu-${index}`} to={`/educadores/${edu.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <TopEducatorAvatar>
+                    <img 
+                      src={edu.profileImageFilename ? `/images/perfil/${edu.profileImageFilename}` : '/images/placeholder.jpg'} 
+                      alt={edu.name || t('common.nameNotAvailable')}
+                      onError={(e) => { e.target.onerror = null; e.target.src='/images/placeholder.jpg'; }}
+                    />
+                    <span>{edu.name || t('common.nameNotAvailable')}</span>
+                  </TopEducatorAvatar>
+                </Link>
               );
             })
           ) : (
@@ -365,11 +473,8 @@ const Home = () => {
         </TopEducatorsContainer>
       </Section>
 
-      {/* Banner ESPAÑOL */}
-      <Banner 
-        imageUrl="/images/23-May-_-Espanol-2048x462.webp" 
-        style={{ minHeight: '304px' }}
-      />
+      {/* Banner BeyondCharts arriba de Our Educators */}
+      <BeyondBanner onClick={() => navigate('/beyond-charts')} title="Go to Beyond the Charts" />
 
       {/* Sección Educadores Preview */}
       <Section>
@@ -410,9 +515,8 @@ const Home = () => {
       </Section>
       
       {/* Banner TELEGRAM */}
-       <Banner 
-         imageUrl="/images/telegram.png" 
-         style={{ minHeight: '234px' }}
+      <TelegramBanner 
+        imageUrl={telegramBanner} 
       />
 
     </PageContainer>
