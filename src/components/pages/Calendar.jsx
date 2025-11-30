@@ -173,46 +173,29 @@ const weekDays = [
 ];
 
 const nameToId = {
-  'Franklin Araujo': 'frank-araujo',
-  'Richard Hall Pops': 'richard-hall-pops',
   'Stephon Royal': 'stephon-r',
   'Mauricio Gaytán': 'maur-gaytan',
-  'Angie Toney': 'angie-toney',
   'Jorge Damelines': 'jorge-d',
-  'Sebastian Garcia': 'seb-garcia',
   'Javier Perez': 'javier-perez',
-  'Arin Long': 'arin-long',
   'Corey Williams': 'corey-williams',
-  'Lucas Longmire': 'lucas-longmire',
   'Tamara Mckenzie': 'tamara-minto',
   'Jimmy el André': 'jimmy-el-andre'
 };
 
 const sessionsByDay = {
   Sunday: [
-    // Español
-    { time: '14:00', educator: 'Sebastian Garcia', title: 'Market open', lang: 'Español' },
     // Français
     { time: '15:00', educator: 'Jimmy el André', title: 'Akila/ Aligator stratégie', lang: 'Français' },
   ],
   Monday: [
     // Inglés
     { time: '21:00', educator: 'Tamara Mckenzie', title: 'Onboarding For Beginners', lang: 'English' },
-    // Español
-    { time: '11:00', educator: 'Franklin Araujo', title: 'Análisis del Mercado', lang: 'Español' },
   ],
   Tuesday: [
     // Inglés
-    { time: '08:00', educator: 'Lucas Longmire', title: '', lang: 'English' },
-    { time: '19:00', educator: 'Angie Toney', title: '', lang: 'English' },
-    { time: '20:00', educator: 'Arin Long', title: 'Forex Basics and Market Bully Strategy', lang: 'English' },
-    { time: '23:00', educator: 'Richard Hall Pops', title: '', lang: 'English' },
     // Español
   ],
   Wednesday: [
-    { time: '08:00', educator: 'Lucas Longmire', title: '', lang: 'English' },
-    { time: '10:00', educator: 'Richard Hall Pops', title: '', lang: 'English' },
-    { time: '19:00', educator: 'Arin Long', title: 'Forex Basics and Market Bully Strategy', lang: 'English' },
     { time: '20:00', educator: 'Corey Williams', title: 'Crypto and Coffee', lang: 'English' },
     { time: '21:00', educator: 'Stephon Royal', title: 'VVS', lang: 'English' },
     // Español
@@ -220,10 +203,6 @@ const sessionsByDay = {
     { time: '09:00', educator: 'Jimmy el André', title: 'Akila/ Aligator stratégie', lang: 'Français' },
   ],
   Thursday: [
-    { time: '08:00', educator: 'Lucas Longmire', title: '', lang: 'English' },
-    { time: '23:00', educator: 'Richard Hall Pops', title: '', lang: 'English' },
-    // Español
-    { time: '11:00', educator: 'Franklin Araujo', title: 'Educación y Formación Completa', lang: 'Español' },
     // Français
     { time: '09:00', educator: 'Jimmy el André', title: 'Akila/ Aligator stratégie', lang: 'Français' },
   ],

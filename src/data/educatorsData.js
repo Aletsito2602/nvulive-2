@@ -11,78 +11,6 @@ const placeholderSocial = {
 const educatorsData = {
   forex: [
     {
-      id: 'seb-garcia',
-      name: 'Sebastian Garcia',
-      category: 'forex',
-      img: 'https://picsum.photos/seed/forex1/400/300',
-      profileImageFilename: 'Sebastian Garcia.jpg',
-      coverImageFilename: 'Sebastian García.jpg',
-      description: `Soy un educador con más de 10 años de experiencia en el trading, habiendo guiado a más de 1,000 estudiantes a transformar sus resultados en los gráficos y en sus vidas. Mi enfoque combina estrategias efectivas de Smart Money con herramientas avanzadas de PNL (Programación Neurolingüística), permitiendo a mis estudiantes duplicar sus resultados en 90 días.`,
-      language: 'es',
-      socialLinks: placeholderSocial,
-      vimeoLiveEmbed: 'https://vimeo.com/event/4650284/embed',
-      vimeoUserId: '221550365',
-      vimeoFolderId: '22599057'
-    },
-    {
-      id: 'frank-araujo', 
-      name: 'Franklin Araujo', 
-      category: 'forex',
-      img: 'https://picsum.photos/seed/forex3/400/300',
-      profileImageFilename: 'Franklin.jpg',
-      coverImageFilename: 'Franklin Araujo.jpg',
-      description: `Trader con más de 5 años de experiencia en los mercados financieros, especializado en el par EUR/USD. Como swing trader, te brindaré las herramientas correctas para que aprendas trading desde lo más básico hasta lo más avanzado, con un enfoque claro en dominar las gráficas y entender el comportamiento del mercado de forma profesional.`,
-      language: 'es',
-      socialLinks: placeholderSocial,
-      vimeoLiveEmbed: 'https://vimeo.com/event/4827795/embed',
-      vimeoUserId: '221550365',
-      vimeoFolderId: '25090053'
-    },
-    {
-      id: 'arin-long',
-      name: 'Arin Long',
-      category: 'forex',
-      img: 'https://picsum.photos/seed/aringlong/400/300',
-      profileImageFilename: 'Arin Long.jpg',
-      coverImageFilename: 'Arin Long.jpg',
-      description: 'Forex educator.',
-      language: 'en',
-      socialLinks: placeholderSocial,
-      vimeoLiveEmbed: 'https://vimeo.com/event/4865934/embed',
-      vimeoUserId: '221550365',
-      vimeoFolderId: '23714506'
-    },
-
-
-    {
-      id: 'richard-hall-pops',
-      name: 'Richard Hall Pops',
-      category: 'forex',
-      img: 'https://picsum.photos/seed/richardhall/400/300',
-      profileImageFilename: 'Hall Pops.jpg',
-      coverImageFilename: 'Richard Hall.jpg',
-      description: 'Forex educator.',
-      language: 'en',
-      socialLinks: placeholderSocial,
-      vimeoLiveEmbed: 'https://vimeo.com/event/4650337/embed',
-      vimeoUserId: '221550365',
-      vimeoFolderId: '22598297'
-    },
-    {
-      id: 'lucas-longmire',
-      name: 'Lucas Longmire',
-      category: 'forex',
-      img: 'https://picsum.photos/seed/lucaslongmire/400/300',
-      profileImageFilename: 'Lucas L.jpg',
-      coverImageFilename: 'Lucas Longmire.jpg',
-      description: `Luc Longmire is a global entrepreneur, investor, and keynote speaker with over eight years of expertise in forex, cryptocurrency, and financial literacy. Once a street hustler chasing fast money, Luc transformed his mindset and built a purpose-driven, multi-figure empire rooted in freedom and education. He's mentored over 500,000 students worldwide, spoken in 33+ countries, and created tools that empower others to build lasting wealth.`,
-      language: 'en',
-      socialLinks: placeholderSocial,
-      vimeoLiveEmbed: 'https://vimeo.com/event/5189586/embed',
-      vimeoUserId: '221550365',
-      vimeoFolderId: '25597629'
-    },
-    {
       id: 'tamara-minto',
       name: 'Tamara Mckenzie',
       category: 'forex',
@@ -151,20 +79,6 @@ Son histoire prouve que diverses expériences de vie—discipline militaire, acc
     },
   ],
   'financial-literacy': [
-    {
-      id: 'angie-toney',
-      name: 'Angie Toney',
-      category: 'financial-literacy',
-      img: 'https://picsum.photos/seed/angietoney/400/300',
-      profileImageFilename: 'Angie T.jpg',
-      coverImageFilename: 'Angie Toney.jpg',
-      description: 'Educadora especializada en alfabetización financiera, ayudando a las personas a tomar control de sus finanzas y construir riqueza a largo plazo.',
-      language: 'en',
-      socialLinks: placeholderSocial,
-      vimeoLiveEmbed: 'https://vimeo.com/event/4650197/embed',
-      vimeoUserId: '221550365',
-      vimeoFolderId: '22599084'
-    },
   ],
   'marketing-digital': [
     {
